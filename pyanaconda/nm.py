@@ -142,9 +142,12 @@ def nm_devices():
     for device in devices:
         device_type = _get_property(device, "DeviceType", ".Device")
         if device_type not in supported_device_types:
+            print("Skip: " + _get_property(device, "Interface", ".Device"))
             continue
         iface = _get_property(device, "Interface", ".Device")
         interfaces.append(iface)
+
+        print("interfaces: ", interfaces)
 
     return interfaces
 
