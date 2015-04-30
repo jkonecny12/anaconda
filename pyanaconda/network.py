@@ -46,6 +46,7 @@ from pyanaconda.flags import flags, can_touch_runtime_system
 from pyanaconda.i18n import _
 from pyanaconda.regexes import HOSTNAME_PATTERN_WITHOUT_ANCHORS
 
+from pyudev import Context, Monitor, MonitorObserver
 from gi.repository import NetworkManager
 
 import logging
@@ -82,6 +83,54 @@ def check_ip_address(address, version=None):
         return False
     if version and version == ver:
         return True
+
+def get_udev_devices():
+    context = Context()
+    devices = context.list_devices(subsystem="net")
+
+    log = logging.getLogger("ifcfg")
+    devices = []
+
+    for device in devices:
+        log.debug("found device {0}".format(device.sys_name))
+        if device.sys_name != "lo":
+            devices.append(device.sys_name)
+
+    return devices
+
+def register_network_device_add(callback):
+
+    def _inner_udev_callback(action, device):
+        print("inner callback")
+        if action == "add":
+            callback(device.sys_name)
+
+    context = Context()
+    monitor = Monitor.from_netlink(context)
+    monitor.filter_by(subsystem="net")
+    observer = MonitorObserver(monitor, _inner_udev_callback, name="Network device add")
+
+    return observer
+
+def wait_for_nm_devices():
+    udev_devices = get_udev_devices()
+    all_registered = False
+
+    log = logging.getLogger("ifcfg")
+
+    while not all_registered:
+        devices = nm_devices()
+        all_registered = True
+
+        log.debug("udev devices", udev_devices)
+        log.debug("NM devices", devices)
+
+        for dev in udev_devices:
+            if dev not in devices:
+                all_registered = False
+                break
+
+        time.sleep(0.5)
 
 def sanityCheckHostname(hostname):
     """
