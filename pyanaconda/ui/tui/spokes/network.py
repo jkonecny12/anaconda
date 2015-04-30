@@ -29,6 +29,9 @@ from pyanaconda.i18n import N_, _
 from pyanaconda import network
 from pyanaconda.nm import nm_activated_devices, nm_devices, nm_device_type_is_ethernet, nm_device_ip_config, nm_activate_device_connection, nm_device_setting_value, UnmanagedDeviceError, UnknownConnectionError
 
+import logging
+log = logging.getLogger("anaconda")
+
 import re
 IPV4_PATTERN_WITHOUT_ANCHORS=r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
 
@@ -54,7 +57,9 @@ class NetworkSpoke(EditTUISpoke):
 
     def _load_new_devices(self):
         devices = nm_devices()
-        network.dumpMissingDefaultIfcfgs()
+        intf_dumped = network.dumpMissingDefaultIfcfgs()
+        if intf_dumped:
+            log.debug("Dumped interfaces: {0}".format(intf_dumped))
 
         for name in devices:
             if name in self.supported_devices:
