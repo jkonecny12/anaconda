@@ -238,6 +238,15 @@ def nm_device_type_is_ethernet(name):
     """
     return nm_device_type(name) == NetworkManager.DeviceType.ETHERNET
 
+def nm_device_type_is_infiniband(name):
+    """Is the type of device infiniband?
+
+       Exceptions:
+       UnknownDeviceError if device is not found
+       PropertyNotFoundError if type is not found
+    """
+    return nm_device_type(name) == NetworkManager.DeviceType.INFINIBAND
+
 def nm_device_type_is_bond(name):
     """Is the type of device bond?
 
@@ -480,7 +489,10 @@ def nm_hwaddr_to_device_name(hwaddr):
         :rtype: str
     """
     for device in nm_devices():
-        if nm_device_perm_hwaddress(device).upper() == hwaddr.upper():
+        if nm_device_type_is_infiniband(device):
+            if nm_device_hwaddress(device).upper() == hwaddr.upper():
+                return device
+        elif nm_device_perm_hwaddress(device).upper() == hwaddr.upper():
             return device
     return None
 
@@ -529,7 +541,10 @@ def _device_settings(name):
         settings = _find_settings(name, 'connection', 'interface-name')
         if not settings:
             try:
-                hwaddr_str = nm_device_perm_hwaddress(name)
+                if nm_device_type_is_infiniband(name):
+                    hwaddr_str = nm_device_hwaddress(name)
+                else:
+                    hwaddr_str = nm_device_perm_hwaddress(name)
             except PropertyNotFoundError:
                 settings = []
             else:

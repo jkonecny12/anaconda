@@ -519,7 +519,11 @@ def add_connection_for_ksdata(networkdata, devname):
         dev_spec = None
     # type "802-3-ethernet"
     else:
-        mac = nm.nm_device_perm_hwaddress(devname)
+        if nm.nm_device_type_is_infiniband(devname):
+            mac = nm.nm_device_hwaddress(devname)
+        else:
+            mac = nm.nm_device_perm_hwaddress(devname)
+
         if flags.cmdline.get("ifname", "").upper() == "{0}:{1}".format(devname, mac).upper():
             mac = [int(b, 16) for b in mac.split(":")]
             values.append(['802-3-ethernet', 'mac-address', mac, 'ay'])
@@ -546,14 +550,19 @@ def _add_slave_connection(slave_type, slave, master, activate, values=None):
 
     values = []
     suuid =  str(uuid4())
+
+    if nm.nm_device_type_is_infiniband(slave):
+        mac = nm.nm_device_hwaddress(slave)
+    else:
+        mac = nm.nm_device_perm_hwaddress(slave)
+    mac = [int(b, 16) for b in mac.split(":")]
+
     # assume ethernet, TODO: infiniband, wifi, vlan
     values.append(['connection', 'uuid', suuid, 's'])
     values.append(['connection', 'id', slave_name, 's'])
     values.append(['connection', 'slave-type', slave_type, 's'])
     values.append(['connection', 'master', master, 's'])
     values.append(['connection', 'type', '802-3-ethernet', 's'])
-    mac = nm.nm_device_perm_hwaddress(slave)
-    mac = [int(b, 16) for b in mac.split(":")]
     values.append(['802-3-ethernet', 'mac-address', mac, 'ay'])
 
     # disconnect slaves
@@ -782,7 +791,10 @@ def find_ifcfg_file_of_device(devname, root_path=""):
         ifcfg_path = find_ifcfg_file([("DEVICE", devname)])
     elif nm.nm_device_type_is_ethernet(devname):
         try:
-            hwaddr = nm.nm_device_perm_hwaddress(devname)
+            if nm.nm_device_type_is_infiniband(devname):
+                hwaddr = nm.nm_device_hwaddress(devname)
+            else:
+                hwaddr = nm.nm_device_perm_hwaddress(devname)
         except nm.PropertyNotFoundError:
             hwaddr = None
         if hwaddr:
@@ -969,7 +981,10 @@ def ks_spec_to_device_name(ksspec=""):
         # "XX:XX:XX:XX:XX:XX" (mac address)
         elif ':' in ksdevice:
             try:
-                hwaddr = nm.nm_device_perm_hwaddress(dev)
+                if nm.nm_device_type_is_infiniband(dev):
+                    hwaddr = nm.nm_device_hwaddress(dev)
+                else:
+                    hwaddr = nm.nm_device_perm_hwaddress(dev)
             except ValueError as e:
                 log.debug("ks_spec_to_device_name: %s", e)
                 continue
@@ -979,7 +994,10 @@ def ks_spec_to_device_name(ksspec=""):
         # "bootif" and BOOTIF==XX:XX:XX:XX:XX:XX
         elif ksdevice == 'bootif':
             try:
-                hwaddr = nm.nm_device_perm_hwaddress(dev)
+                if nm.nm_device_type_is_infiniband(dev):
+                    hwaddr = nm.nm_device_hwaddress(dev)
+                else:
+                    hwaddr = nm.nm_device_perm_hwaddress(dev)
             except ValueError as e:
                 log.debug("ks_spec_to_device_name: %s", e)
                 continue
