@@ -996,6 +996,11 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler):
         # Force a status update to clear any disabled errors
         self.set_status(self._urlCheck)
 
+    def _checkReposURL(self):
+        for repo in self._repoStore:
+            log.debug("AHHH %s - %s", repo[REPO_OBJ].name, repo[REPO_OBJ].baseurl)
+            self._repoURLChecks[repo[REPO_OBJ]].update_check_status()
+
     def _checkDuplicateRepos(self, inputcheck):
         repo_names = [r[REPO_OBJ].name for r in inputcheck.input_obj]
         if len(repo_names) != len(frozenset(repo_names)):
@@ -1047,6 +1052,8 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler):
     def on_back_clicked(self, button):
         """If any input validation checks failed, keep the user on the screen.
            Otherwise, do the usual thing."""
+
+        self._checkReposURL()
 
         failed_check = next(self.failed_checks, None)
 
