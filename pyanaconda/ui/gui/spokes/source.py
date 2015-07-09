@@ -913,17 +913,30 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler):
 
     # This method is shared by the checks on urlEntry and repoUrlEntry
     def _checkURL(self, inputcheck, combo):
-        url_string = self.get_input(inputcheck.input_obj).strip()
+        # If combo is not set inputcheck holds repo
+        is_additional_repo = combo is None
+        if is_additional_repo:
+            repo = inputcheck.input_obj
+            protocol = "http" #urlsplit(repo.baseurl)[0]
+            url_string = repo.baseurl.strip()[len(protocol) + 3:]
+        else:
+            url_string = self.get_input(inputcheck.input_obj).strip()
+            protocol = combo.get_active_id()
 
         # If this is HTTP/HTTPS/FTP, use the URL_PARSE regex
-        combo_protocol = combo.get_active_id()
-        if combo_protocol in (PROTOCOL_HTTP, PROTOCOL_HTTPS, PROTOCOL_FTP):
+        if protocol in (PROTOCOL_HTTP, PROTOCOL_HTTPS, PROTOCOL_FTP):
             if not url_string:
-                return _("URL is empty")
+                if is_additional_repo and repo.name:
+                    return _("Repository %s has empty url") % repo.name
+                else:
+                    return _("URL is empty")
 
             m = URL_PARSE.match(url_string)
             if not m:
-                return _("Invalid URL")
+                if is_additional_repo and repo.name:
+                    return _("Repository %s has invalid url") % repo.name
+                else:
+                    return _("Invalid URL")
 
             # If there is a protocol in the URL, and the protocol matches the
             # combo box, just remove it. This makes it more convenient to paste
@@ -932,28 +945,40 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler):
             # If the protocols don't match, complain.
             url_protocol = m.group('protocol')
             if url_protocol:
-                if (url_protocol == 'http://' and combo_protocol == PROTOCOL_HTTP) or \
-                        (url_protocol == 'https://' and combo_protocol == PROTOCOL_HTTPS) or \
-                        (url_protocol == 'ftp://' and combo_protocol == PROTOCOL_FTP):
+                if (url_protocol == 'http://' and protocol == PROTOCOL_HTTP) or \
+                        (url_protocol == 'https://' and protocol == PROTOCOL_HTTPS) or \
+                        (url_protocol == 'ftp://' and protocol == PROTOCOL_FTP):
                     # Disable the check to block a recursive check call
                     inputcheck.enabled = False
                     inputcheck.input_obj.set_text(url_string[len(url_protocol):])
                     inputcheck.enabled = True
                 else:
-                    return _("Protocol in URL does not match selected protocol")
-        elif combo_protocol == PROTOCOL_NFS:
+                    if is_additional_repo and repo.name:
+                        return _("Repository %s does not match selected protocol" % repo.name)
+                    else:
+                        return _("Protocol in URL does not match selected protocol")
+        elif protocol == PROTOCOL_NFS:
             if not url_string:
-                return _("NFS server is empty")
+                if is_additional_repo and repo.name:
+                    return _("Repository %s has empty NFS server") % repo.name
+                else:
+                    return _("NFS server is empty")
 
             # Make sure the part before the colon looks like a hostname,
             # and that the path is not empty
             host, _colon, path = url_string.partition(':')
 
             if not re.match('^' + HOSTNAME_PATTERN_WITHOUT_ANCHORS + '$', host):
-                return _("Invalid host name")
+                if is_additional_repo and repo.name:
+                    return _("Repository %s has invalid host name") % repo.name
+                else:
+                    return _("Invalid host name")
 
             if not path:
-                return _("Remote directory is required")
+                if is_additional_repo and repo.name:
+                    return _("Repository %s required remote directory") % repo.name
+                else:
+                    return _("Remote directory is required")
 
         return InputCheck.CHECK_OK
 
@@ -961,7 +986,7 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler):
         return self._checkURL(inputcheck, self._protocolComboBox)
 
     def _checkRepoURL(self, inputcheck):
-        return self._checkURL(inputcheck, self._repoProtocolComboBox)
+        return self._checkURL(inputcheck, None)
 
     # Update the check on urlEntry when the sensitity or selected protocol changes
     def _updateURLEntryCheck(self, *args):
@@ -978,7 +1003,7 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler):
         return InputCheck.CHECK_OK
 
     def _checkRepoName(self, inputcheck):
-        repo_name = self.get_input(inputcheck.input_obj).strip()
+        repo_name = inputcheck.input_obj.name
 
         if not repo_name:
             return _("Empty repository name")
@@ -995,19 +1020,20 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler):
         return InputCheck.CHECK_OK
 
     def _checkRepoProxy(self, inputcheck):
+        repo = inputcheck.input_obj
         # If nfs is selected as the protocol, skip the proxy check
-        if self._repoProtocolComboBox.get_active_id() == PROTOCOL_NFS:
+        if repo.baseurl.startswith(PROTOCOL_NFS):
+            return InputCheck.CHECK_OK
+
+        if not repo.proxy:
             return InputCheck.CHECK_OK
 
         # Empty proxies are OK, as long as the username and password are empty too
-        proxy_string = self.get_input(inputcheck.input_obj).strip()
-        username_set = self._repoProxyUsernameEntry.is_sensitive() and self._repoProxyUsernameEntry.get_text().strip()
-        password_set = self._repoProxyPasswordEntry.is_sensitive() and self._repoProxyPasswordEntry.get_text().strip()
-
-        if not (proxy_string or username_set or password_set):
+        proxy_obj = ProxyString(repo.proxy)
+        if not (repo.proxy or proxy_obj.username or proxy_obj.password):
             return InputCheck.CHECK_OK
 
-        return _validateProxy(proxy_string, username_set, password_set)
+        return _validateProxy(proxy_obj.noauth_url, proxy_obj.username, proxy_obj.password)
 
     # Signal handlers.
     def on_source_toggled(self, button, relatedBox):
