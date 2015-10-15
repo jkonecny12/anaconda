@@ -1415,6 +1415,12 @@ class NetworkSpoke(FirstbootSpokeMixIn, NormalSpoke):
     def apply(self):
         _update_network_data(self.data, self.network_control_box)
         log.debug("network: apply ksdata %s", self.data.network)
+
+        log.debug("network spoke (apply) refresh payload")
+        from pyanaconda.packaging import payloadMgr
+        payloadMgr.restartThread(self.storage, self.data, self.payload,
+                                 fallback=not anaconda_flags.automatedInstall)
+
         self.network_control_box.kill_nmce(msg="leaving network spoke")
 
         # if installation media or hdd is not used and settings changed try if source is reachable

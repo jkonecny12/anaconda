@@ -233,6 +233,10 @@ class NetworkSpoke(EditTUISpoke):
         " Apply all of our settings."""
         self._update_network_data()
 
+        from pyanaconda.packaging import payloadMgr
+        payloadMgr.restartThread(self.storage, self.data, self.payload,
+                   checkmount=False)
+
     def _update_network_data(self):
         hostname = self.data.network.hostname
 
