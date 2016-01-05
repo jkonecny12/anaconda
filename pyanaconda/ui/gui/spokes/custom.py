@@ -1872,16 +1872,13 @@ class CustomPartitioningSpoke(NormalSpoke, StorageChecker):
 
         self._remove_empty_parents(device)
 
-    def _show_mountpoint(self, page=None, mountpoint=None):
+    def _show_mountpoint(self, page, mountpoint=None):
         if not self._initialized:
             return
 
         # Make sure there's something displayed on the RHS.  If a page and
         # mountpoint within that page is given, display that.  Otherwise, just
         # default to the first selector available.
-        if not page:
-            page = self._current_page
-
         log.debug("show mountpoint: %s", page.pageTitle)
         if not page.members:
             self._accordion.clear_current_selector()
@@ -1894,18 +1891,18 @@ class CustomPartitioningSpoke(NormalSpoke, StorageChecker):
 
         for member in page.members:
             if member.get_property("mountpoint").lower() == mountpoint.lower():
-                self.on_selector_clicked(member)
+                self.on_selector_clicked(None, member)
                 break
 
     def on_remove_clicked(self, button):
-        # Nothing displayed on the RHS?  Nothing to remove.
-        if not self._accordion.current_selector:
+        # Nothing selected?  Nothing to remove.
+        if not self._accordion.is_current_selected and not self._accordion.is_multiselection:
             return
 
         skip_dialog = False
         is_multiselection = self._accordion.is_multiselection
         for selector in self._accordion.selected_items:
-            page = self._current_page
+            page = self._accordion.page_for_selector(selector)
             device = selector.device
             root_name = None
             if selector.root:
@@ -1935,6 +1932,7 @@ class CustomPartitioningSpoke(NormalSpoke, StorageChecker):
                 if not skip_dialog:
                     dialog = ConfirmDeleteDialog(self.data)
                     snapshots = (device.direct and not device.isleaf)
+                    checkbox_text = None
                     if not is_multiselection:
                         if root_name and "_" in root_name:
                             root_name = root_name.replace("_", "__")
