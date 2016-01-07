@@ -228,7 +228,7 @@ class CustomPartitioningSpoke(NormalSpoke, StorageChecker):
         partitionsNotebookViewport = self.builder.get_object("partitionsNotebookViewport")
         self._partitionsNotebook.set_focus_vadjustment(partitionsNotebookViewport.get_vadjustment())
 
-        self._whenCreateLabel = self.builder.get_object("whenCreateLabel")
+        self._pageLabel = self.builder.get_object("pageLabel")
 
         self._availableSpaceLabel = self.builder.get_object("availableSpaceLabel")
         self._totalSpaceLabel = self.builder.get_object("totalSpaceLabel")
@@ -490,7 +490,7 @@ class CustomPartitioningSpoke(NormalSpoke, StorageChecker):
             self._accordion.add_page(page, cb=self.on_page_clicked)
 
             self._partitionsNotebook.set_current_page(NOTEBOOK_LABEL_PAGE)
-            self._whenCreateLabel.set_text(_("When you create mount points for "
+            self._pageLabel.set_text(_("When you create mount points for "
                     "your %(name)s %(version)s installation, you'll be able to "
                     "view their details here.") % {"name" : productName,
                                                    "version" : productVersion})
@@ -2254,7 +2254,7 @@ class CustomPartitioningSpoke(NormalSpoke, StorageChecker):
         #       remove curr_selector test and create new if
         if self._accordion.is_multiselection or not curr_selector:
             currentPageType = NOTEBOOK_LABEL_PAGE
-            self._whenCreateLabel.set_text("You can't edit device in multiselection mode")
+            self._pageLabel.set_text(_("You can't edit device in multiselection mode"))
             no_edit = True
         elif curr_selector.device.format.type == "luks" and \
            curr_selector.device.format.exists:
@@ -2333,6 +2333,10 @@ class CustomPartitioningSpoke(NormalSpoke, StorageChecker):
             # Make sure we're showing "here's how you create a new OS" label
             # instead of device/mountpoint details.
             self._partitionsNotebook.set_current_page(NOTEBOOK_LABEL_PAGE)
+            self._pageLabel.set_text(_("When you create mount points for "
+                    "your %(name)s %(version)s installation, you'll be able to "
+                    "view their details here.") % {"name" : productName,
+                                                   "version" : productVersion})
             self._removeButton.set_sensitive(False)
         else:
             self._removeButton.set_sensitive(True)
