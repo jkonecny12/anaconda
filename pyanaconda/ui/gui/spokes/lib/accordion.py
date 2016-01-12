@@ -81,6 +81,7 @@ def new_selector_from_device(device, mountpoint=""):
 
     return selector
 
+
 class Accordion(Gtk.Box):
     """ An Accordion is a box that goes on the left side of the custom partitioning spoke.
         It stores multiple expanders which are here called Pages.  These Pages correspond to
@@ -303,33 +304,20 @@ class Accordion(Gtk.Box):
         cb(old_selector, selector)
 
 
-# A Page is a box that is stored in an Accordion.  It breaks down all the filesystems that
-# comprise a single installed OS into two categories - Data filesystems and System filesystems.
-# Each filesystem is described by a single MountpointSelector.
-class Page(Gtk.Box):
+class BasePage(Gtk.Box):
+    """ Base class for all Pages. It implements most methods which is used
+        all kind of Page classes.
+
+        .. NOTE::
+
+            You should not instantiate this class. Please create a subclass
+            and use the subclass instead.
+    """
     def __init__(self, title):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=6)
-
-        # Create the Data label and a box to store all its members in.
-        self._dataBox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self._dataLabel = self._make_category_label(_("DATA"))
-        really_hide(self._dataLabel)
-        self._dataBox.add(self._dataLabel)
-        self._dataBox.connect("add", self._on_selector_added, self._dataLabel)
-        self._dataBox.connect("remove", self._on_selector_removed, self._dataLabel)
-        self.add(self._dataBox)
-
-        # Create the System label and a box to store all its members in.
-        self._systemBox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self._systemLabel = self._make_category_label(_("SYSTEM"))
-        really_hide(self._systemLabel)
-        self._systemBox.add(self._systemLabel)
-        self._systemBox.connect("add", self._on_selector_added, self._systemLabel)
-        self._systemBox.connect("remove", self._on_selector_removed, self._systemLabel)
-        self.add(self._systemBox)
-
         self.members = []
         self.pageTitle = title
+        self.selected_members = set()
 
     def _make_category_label(self, name):
         label = Gtk.Label()
@@ -339,9 +327,31 @@ class Page(Gtk.Box):
         label.set_margin_left(24)
         return label
 
+    def _chosen_changed(self, selector, _user_data):
+        if selector.get_chosen():
+            self.selected_members.add(selector)
+        else:
+            self.selected_members.discard(selector)
+
+        if self.selected_members:
+            label = Gtk.Label(label="""<span size='large' weight='bold' fgcolor='black'>%s (%s/%s)</span>""" %
+                              (escape_markup(self.pageTitle), escape_markup(len(self.selected_members)),
+                              escape_markup(len(self.members))),
+                              use_markup=True, xalign=0, yalign=0.5, wrap=True)
+        else: # do not show number of selected items when there are no items selected
+            label = Gtk.Label(label="""<span size='large' weight='bold' fgcolor='black'>%s</span>""" %
+                              escape_markup(self.pageTitle), use_markup=True,
+                              xalign=0, yalign=0.5, wrap=True)
+
+        # Set name of the page to expander
+        self.get_parent().set_label_widget(label)
+        self.get_parent().show_all()
+
     def add_selector(self, device, cb, mountpoint=""):
         accordion = self.get_ancestor(Accordion)
         selector = new_selector_from_device(device, mountpoint=mountpoint)
+        selector.set_page(self)
+        selector.connect("chosen_changed", self._chosen_changed, None)
         selector.connect("button-press-event", accordion.process_event, cb)
         selector.connect("key-release-event", accordion.process_event, cb)
         selector.connect("focus-in-event", self._on_selector_focus_in, cb)
@@ -374,8 +384,6 @@ class Page(Gtk.Box):
             return DATA_DEVICE
 
     def _on_selector_focus_in(self, selector, event, cb):
-        # could be simple lambda, but this way it looks more similar to the
-        # _on_selector_clicked
         accordion = self.get_ancestor(Accordion)
         cb(accordion.current_selector, selector)
 
@@ -388,17 +396,44 @@ class Page(Gtk.Box):
         if len(container.get_children()) == 1:
             really_hide(label)
 
-class UnknownPage(Page):
+
+class Page(BasePage):
+    """ A Page is a box that is stored in an Accordion.  It breaks down all the filesystems that
+        comprise a single installed OS into two categories - Data filesystems and System filesystems.
+        Each filesystem is described by a single MountpointSelector.
+    """
+    def __init__(self, title):
+        super().__init__(title)
+
+        # Create the Data label and a box to store all its members in.
+        self._dataBox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self._dataLabel = self._make_category_label(_("DATA"))
+        really_hide(self._dataLabel)
+        self._dataBox.add(self._dataLabel)
+        self._dataBox.connect("add", self._on_selector_added, self._dataLabel)
+        self._dataBox.connect("remove", self._on_selector_removed, self._dataLabel)
+        self.add(self._dataBox)
+
+        # Create the System label and a box to store all its members in.
+        self._systemBox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self._systemLabel = self._make_category_label(_("SYSTEM"))
+        really_hide(self._systemLabel)
+        self._systemBox.add(self._systemLabel)
+        self._systemBox.connect("add", self._on_selector_added, self._systemLabel)
+        self._systemBox.connect("remove", self._on_selector_removed, self._systemLabel)
+        self.add(self._systemBox)
+
+
+class UnknownPage(BasePage):
     def __init__(self, title):
         # For this type of page, there's only one place to store members.
-        # pylint: disable=super-init-not-called,non-parent-init-called
-        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.members = []
-        self.pageTitle = title
+        super().__init__(title)
 
     def add_selector(self, device, cb, mountpoint=""):
         accordion = self.get_ancestor(Accordion)
         selector = new_selector_from_device(device, mountpoint=mountpoint)
+        selector.set_page(self)
+        selector.connect("chosen_changed", self._chosen_changed, None)
         selector.connect("button-press-event", accordion.process_event, cb)
         selector.connect("key-release-event", accordion.process_event, cb)
 
@@ -411,16 +446,16 @@ class UnknownPage(Page):
         self.remove(selector)
         self.members.remove(selector)
 
-# This is a special Page that is displayed when no new installation has been automatically
-# created, and shows the user how to go about doing that.  The intention is that an instance
-# of this class will be packed into the Accordion first and then when the new installation
-# is created, it will be removed and replaced with a Page for it.
-class CreateNewPage(Page):
+
+class CreateNewPage(BasePage):
+    """ This is a special Page that is displayed when no new installation
+        has been automatically created, and shows the user how to go about
+        doing that.  The intention is that an instance of this class will be
+        packed into the Accordion first and then when the new installation
+        is created, it will be removed and replaced with a Page for it.
+    """
     def __init__(self, title, createClickedCB, autopartTypeChangedCB, partitionsToReuse=True):
-        # pylint: disable=super-init-not-called,non-parent-init-called
-        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.members = []
-        self.pageTitle = title
+        super().__init__(title)
 
         # Create a box where we store the "Here's how you create a new blah" info.
         self._createBox = Gtk.Grid()
