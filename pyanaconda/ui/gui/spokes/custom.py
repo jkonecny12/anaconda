@@ -1877,22 +1877,18 @@ class CustomPartitioningSpoke(NormalSpoke, StorageChecker):
             return
 
         # Make sure there's something displayed on the RHS.  If a page and
-        # mountpoint within that page is given, display that.  Otherwise, just
-        # default to the first selector available.
+        # mountpoint within that page is given, display that.
         log.debug("show mountpoint: %s", page.pageTitle)
         if not page.members:
             self._accordion.clear_current_selector()
             return
 
-        if not mountpoint:
-            self._accordion.select(page.members[0])
-            self.on_selector_clicked(None, page.members[0])
-            return
-
-        for member in page.members:
-            if member.get_property("mountpoint").lower() == mountpoint.lower():
-                self.on_selector_clicked(None, member)
-                break
+        if mountpoint:
+            for member in page.members:
+                if member.get_property("mountpoint").lower() == mountpoint.lower():
+                    self._accordion.select(member)
+                    self.on_selector_clicked(None, member)
+                    break
 
     def on_remove_clicked(self, button):
         # Nothing selected?  Nothing to remove.
