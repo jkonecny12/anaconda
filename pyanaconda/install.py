@@ -67,6 +67,9 @@ def doConfiguration(storage, payload, ksdata, instClass):
     if willRunRealmd:
         step_count += 1
 
+    if ksdata.snapshot:
+        step_count += 1
+
     progress_init(step_count)
 
     # Now run the execute methods of ksdata that require an installed system
@@ -141,6 +144,11 @@ def doConfiguration(storage, payload, ksdata, instClass):
         log.info("Not writing out user interaction config file due to directory install mode.")
     else:
         screen_access.sam.write_out_config_file()
+
+    if ksdata.snapshot:
+        with progress_report(N_("Creating snapshots")):
+            log.debug("Starting snapshot creation")
+            ksdata.snapshot.execute(storage, ksdata, instClass)
 
     progress_complete()
 
