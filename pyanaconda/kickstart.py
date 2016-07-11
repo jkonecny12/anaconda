@@ -1940,11 +1940,15 @@ class SnapshotData(commands.snapshot.F26_SnapshotData):
         if not origin_dev:
             raise KickstartParseError(formatErrorMsg(self.lineno,
                                                      msg=(_("Snapshot origin \"%s\" can't be found") %
-                                                            self.origin)))
+                                                          self.origin)))
+        if not origin_dev.is_thin_lv:
+            raise KickstartParseError(formatErrorMsg(self.lineno,
+                                                     msg=(_("Snapshot origin \"%s\" must be thin LV") %
+                                                          self.origin)))
         self.thin_snapshot = None
         try:
             self.thin_snapshot = LVMLogicalVolumeDevice(name=self.name,
-                                                        parents=[origin_dev.parents[0]],
+                                                        parents=origin_dev.pool,
                                                         seg_type="thin",
                                                         origin=origin_dev)
         except ValueError as e:
