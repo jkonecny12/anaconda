@@ -692,6 +692,9 @@ if __name__ == "__main__":
         if not anaconda.ksdata.timezone.nontp:
             iutil.start_service("chronyd")
 
+    # Create pre-install snapshots
+    ksdata.snapshot.pre_execute(anaconda.storage, ksdata, anaconda.instClass)
+
     anaconda._intf.setup(ksdata)
     anaconda._intf.run()
 

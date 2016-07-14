@@ -1910,17 +1910,35 @@ class Snapshot(commands.snapshot.F26_Snapshot):
             This will also do the checking of snapshot validity.
         """
         for snap_data in self.dataList():
-            snap_data.setup(storage, ksdata, instClass)
+            # Skip snapshots before installation, they should be created now anyway
+            if snap_data.when == "post-install" or snap_data.when == "":
+                snap_data.setup(storage, ksdata, instClass)
+
+    def pre_execute(self, storage, ksdata, instClass):
+        """ Create ThinLV snapshot before installation starts.
+
+            This must be done before user can change anything
+        """
+        snapshot_created = False
+        storage.reset()
+        for snap_data in self.dataList():
+            if snap_data.when == "pre-install":
+                snap_data.execute(storage, ksdata, instClass)
+                snapshot_created = True
+
+        if snapshot_created:
+            storage.reset()
 
     def execute(self, storage, ksdata, instClass):
-        """ Create ThinLV snapshot.
+        """ Create ThinLV snapshot after post section stops.
 
             The Blivet must be reseted before creation of the snapshot. This is
             required because the storage could be changed in post section.
         """
         storage.reset()
         for snap_data in self.dataList():
-            snap_data.execute(storage, ksdata, instClass)
+            if snap_data.when == "" or snap_data.when == "post-install":
+                snap_data.execute(storage, ksdata, instClass)
 
 class SnapshotData(commands.snapshot.F26_SnapshotData):
     def setup(self, storage, ksdata, instClass):
@@ -1931,20 +1949,28 @@ class SnapshotData(commands.snapshot.F26_SnapshotData):
         """
         log.debug("Snapshot name %s setup", self.name)
         if not self.origin.count('/') == 1:
-            raise KickstartParseError(formatErrorMsg(self.lineno,
-                                                     msg=_("Incorrectly specified origin of the snapshot."
-                                                           " Use format \"VolGroup/LV_name\"")))
+            raise KickstartParseError(
+                        formatErrorMsg(self.lineno,
+                                       msg=_("Incorrectly specified origin of the snapshot."
+                                             " Use format \"VolGroup/LV_name\"")))
         origin = self.origin.replace("/","-")
         origin_dev = storage.devicetree.get_device_by_name(origin)
+        log.debug("Snapshot %s found origin %s", self.name, origin_dev)
 
         if not origin_dev:
-            raise KickstartParseError(formatErrorMsg(self.lineno,
-                                                     msg=(_("Snapshot origin \"%s\" can't be found") %
-                                                          self.origin)))
+            raise KickstartParseError(
+                        formatErrorMsg(self.lineno,
+                                       msg=(_("Snapshot origin \"%s\" can't be found") %
+                                            self.origin)))
         if not origin_dev.is_thin_lv:
-            raise KickstartParseError(formatErrorMsg(self.lineno,
-                                                     msg=(_("Snapshot origin \"%s\" must be thin LV") %
-                                                          self.origin)))
+            raise KickstartParseError(
+                        formatErrorMsg(self.lineno,
+                                       msg=(_("Snapshot origin \"%s\" must be thin LV") %
+                                            self.origin)))
+        if storage.devicetree.get_device_by_name("%s-%s" % (origin_dev.vg.name, self.name)):
+            raise KickstartParseError(
+                        formatErrorMsg(self.lineno,
+                                       msg=(_("Snapshot %s already exists") % self.name)))
         self.thin_snapshot = None
         try:
             self.thin_snapshot = LVMLogicalVolumeDevice(name=self.name,
