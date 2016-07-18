@@ -65,8 +65,9 @@ from pyanaconda.bootloader import GRUB2, get_bootloader
 from pyanaconda.pwpolicy import F22_PwPolicy, F22_PwPolicyData
 from pyanaconda.storage_utils import device_matches
 
-from pykickstart.constants import CLEARPART_TYPE_NONE, FIRSTBOOT_SKIP, FIRSTBOOT_RECONFIG, KS_SCRIPT_POST, KS_SCRIPT_PRE, \
-                                  KS_SCRIPT_TRACEBACK, KS_SCRIPT_PREINSTALL, SELINUX_DISABLED, SELINUX_ENFORCING, SELINUX_PERMISSIVE
+from pykickstart.constants import CLEARPART_TYPE_NONE, CLEARPART_TYPE_ALL, FIRSTBOOT_SKIP, FIRSTBOOT_RECONFIG, \
+                                  KS_SCRIPT_POST, KS_SCRIPT_PRE, KS_SCRIPT_TRACEBACK, KS_SCRIPT_PREINSTALL, \
+                                  SELINUX_DISABLED, SELINUX_ENFORCING, SELINUX_PERMISSIVE
 from pykickstart.base import BaseHandler
 from pykickstart.errors import formatErrorMsg, KickstartError, KickstartParseError
 from pykickstart.parser import KickstartParser
@@ -1923,11 +1924,18 @@ class Snapshot(commands.snapshot.F26_Snapshot):
         storage.reset()
         for snap_data in self.dataList():
             if snap_data.when == "pre-install":
+                log.debug("Snapshot: creating pre-install snapshot %s", snap_data.name)
                 snap_data.execute(storage, ksdata, instClass)
                 snapshot_created = True
 
         if snapshot_created:
             storage.reset()
+
+            if (ksdata.clearpart.devices or ksdata.clearpart.drives or
+                ksdata.clearpart.type == CLEARPART_TYPE_ALL):
+                log.warning("Snapshot: clearpart command could erase pre-install snapshots!")
+            if ksdata.zerombr.zerombr:
+                log.warning("Snapshot: zerombr command could erase pre-install snapshots!")
 
     def execute(self, storage, ksdata, instClass):
         """ Create ThinLV snapshot after post section stops.
@@ -1938,6 +1946,7 @@ class Snapshot(commands.snapshot.F26_Snapshot):
         storage.reset()
         for snap_data in self.dataList():
             if snap_data.when == "" or snap_data.when == "post-install":
+                log.debug("Snapshot: creating post-install snapshot %s", snap_data.name)
                 snap_data.execute(storage, ksdata, instClass)
 
 class SnapshotData(commands.snapshot.F26_SnapshotData):
@@ -1947,7 +1956,6 @@ class SnapshotData(commands.snapshot.F26_SnapshotData):
             This will plan snapshot creation on the end of the installation. This way
             Blivet will do a validity checking for future snapshot.
         """
-        log.debug("Snapshot name %s setup", self.name)
         if not self.origin.count('/') == 1:
             raise KickstartParseError(
                         formatErrorMsg(self.lineno,
@@ -1955,7 +1963,7 @@ class SnapshotData(commands.snapshot.F26_SnapshotData):
                                              " Use format \"VolGroup/LV_name\"")))
         origin = self.origin.replace("/","-")
         origin_dev = storage.devicetree.get_device_by_name(origin)
-        log.debug("Snapshot %s found origin %s", self.name, origin_dev)
+        log.debug("Snapshot: name %s has origin %s", self.name, origin_dev)
 
         if not origin_dev:
             raise KickstartParseError(
@@ -1985,8 +1993,6 @@ class SnapshotData(commands.snapshot.F26_SnapshotData):
 
             Snapshot must be re-created because method blivet.reset() was called.
         """
-        log.debug("Snapshot name %s setup", self.name)
-
         self.setup(storage, ksdata, instClass)
         self.thin_snapshot.create()
 
