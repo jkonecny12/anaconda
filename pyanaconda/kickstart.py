@@ -1920,15 +1920,9 @@ class Snapshot(commands.snapshot.F26_Snapshot):
 
             This must be done before user can change anything
         """
-        snapshot_created = False
-        storage.reset()
-        for snap_data in self.dataList():
-            if snap_data.when == "pre-install":
-                log.debug("Snapshot: creating pre-install snapshot %s", snap_data.name)
-                snap_data.execute(storage, ksdata, instClass)
-                snapshot_created = True
+        pre_snapshots = [s for s in self.dataList() if s.when == "pre-install"]
 
-        if snapshot_created:
+        if pre_snapshots:
             storage.reset()
 
             if (ksdata.clearpart.devices or ksdata.clearpart.drives or
@@ -1937,15 +1931,24 @@ class Snapshot(commands.snapshot.F26_Snapshot):
             if ksdata.zerombr.zerombr:
                 log.warning("Snapshot: zerombr command could erase pre-install snapshots!")
 
+            for snap_data in pre_snapshots:
+                log.debug("Snapshot: creating pre-install snapshot %s", snap_data.name)
+                snap_data.execute(storage, ksdata, instClass)
+
+            storage.reset()
+
+
     def execute(self, storage, ksdata, instClass):
         """ Create ThinLV snapshot after post section stops.
 
             The Blivet must be reseted before creation of the snapshot. This is
             required because the storage could be changed in post section.
         """
-        storage.reset()
-        for snap_data in self.dataList():
-            if snap_data.when == "" or snap_data.when == "post-install":
+        post_snapshots = [s for s in self.dataList() if s.when == "post-install" or s.when == ""]
+
+        if post_snapshots:
+            storage.reset()
+            for snap_data in post_snapshots:
                 log.debug("Snapshot: creating post-install snapshot %s", snap_data.name)
                 snap_data.execute(storage, ksdata, instClass)
 
