@@ -107,6 +107,8 @@ class AnacondaExceptionHandler(ExceptionHandler):
             sys.exit(0)
         elif isinstance(value, blivet.errors.UnusableConfigurationError):
             sys.exit(0)
+        elif isinstance(value, CmdlineError):
+            sys.exit(0)
         else:
             super(AnacondaExceptionHandler, self).handleException(dump_info)
             return False

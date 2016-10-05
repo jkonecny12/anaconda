@@ -20,7 +20,7 @@ from pyanaconda.i18n import _, C_
 
 __all__ = ["ERROR_RAISE", "ERROR_CONTINUE", "ERROR_RETRY",
            "InvalidImageSizeError", "MissingImageError", "MediaUnmountError",
-           "MediaMountError", "ScriptError", "CmdlineError",
+           "MediaMountError", "ScriptError", "CmdlineError", "NonInteractiveError",
            "errorHandler"]
 
 class InvalidImageSizeError(Exception):
@@ -48,6 +48,9 @@ class ScriptError(Exception):
         self.details = details
 
 class CmdlineError(Exception):
+    pass
+
+class NonInteractiveError(CmdlineError):
     pass
 
 class RemovedModuleError(ImportError):
