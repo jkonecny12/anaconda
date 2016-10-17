@@ -380,6 +380,16 @@ inst.text
 Run the installer using a limited text-based UI. Unless you're using a
 kickstart file this probably isn't a good idea; you should use VNC instead.
 
+.. inst.noninteractive
+
+inst.noninteractive
+^^^^^^^^^^^^^^^^^^^
+
+Run the installer in non interactive mode. This mode does not allow any user
+interaction and can be used with graphical or text mode. With text mode it
+will behave the same as ``inst.cmdline`` mode.
+All options must be specified in a kickstart file or on the command line.
+
 .. inst.resolution:
 
 inst.resolution
