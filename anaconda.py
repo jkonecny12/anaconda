@@ -603,10 +603,10 @@ if __name__ == "__main__":
     from pykickstart import constants as pykickstart_constants
     display_mode_coversion_table = {
         constants.DISPLAY_MODE_GUI: pykickstart_constants.DISPLAY_MODE_GRAPHICAL,
-        constants.DISPLAY_MODE_TUI: pykickstart_constants.DISPLAY_MODE_TEXT,
-        constants.DISPLAY_MODE_NONINTERACTIVE_TUI: pykickstart_constants.DISPLAY_MODE_CMDLINE
+        constants.DISPLAY_MODE_TUI: pykickstart_constants.DISPLAY_MODE_TEXT
     }
     ksdata.displaymode.displayMode = display_mode_coversion_table[anaconda.display_mode]
+    ksdata.displaymode.nonInteractive = not anaconda.interactive_mode
 
     # if we're in text mode, the resulting system should be too
     # ...unless the kickstart specified otherwise

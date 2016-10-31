@@ -183,7 +183,7 @@ def check_memory(anaconda, options, display_mode=None):
         sys.exit(1)
 
     # override display mode if machine cannot nicely run X
-    if display_mode not in constants.TEXT_DISPLAY_MODES and not flags.usevnc:
+    if display_mode != constants.DISPLAY_MODE_TUI and not flags.usevnc:
         needed_ram = graphical_ram
         reason_args["needed_ram"] = graphical_ram
         reason = reason_graphical

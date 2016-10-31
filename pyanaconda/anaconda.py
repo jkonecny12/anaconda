@@ -42,6 +42,7 @@ class Anaconda(object):
         self.desktop = desktop.Desktop()
         self.dir = None
         self._display_mode = None
+        self._interactive_mode = True
         self.gui_startup_failed = False
         self.id = None
         self._instClass = None
@@ -180,10 +181,6 @@ class Anaconda(object):
     def display_mode(self):
         return self._display_mode
 
-    @property
-    def interactive_mode(self):
-        return self._display_mode not in constants.NON_INTERACTIVE_DISPLAY_MODES
-
     @display_mode.setter
     def display_mode(self, new_mode):
         new_mode_name = constants.DISPLAY_MODE_NAMES.get(new_mode)
@@ -200,9 +197,28 @@ class Anaconda(object):
             log.error("tried to set an unknown display mode name: %s", new_mode)
 
     @property
+    def interactive_mode(self):
+        return self._interactive_mode
+
+    @interactive_mode.setter
+    def interactive_mode(self, value):
+        if self._interactive_mode != value:
+            self._interactive_mode = value
+            if value:
+                log.debug("working in interative mode")
+            else:
+                log.debug("working in noninteractive mode")
+
+    @property
     def gui_mode(self):
         """Report if Anaconda should run with the GUI."""
         return self._display_mode == constants.DISPLAY_MODE_GUI
+
+    @property
+    def noninteractive_gui_mode(self):
+        """Report if Anaconda should run wit noninteractive GUI."""
+        return (self._display_mode == constants.DISPLAY_MODE_GUI
+                and not self._interactive_mode)
 
     @property
     def tui_mode(self):
@@ -212,7 +228,8 @@ class Anaconda(object):
     @property
     def noninteractive_tui_mode(self):
         """Report if Anaconda should run with noninteractive TUI."""
-        return self._display_mode == constants.DISPLAY_MODE_NONINTERACTIVE_TUI
+        return (self._display_mode == constants.DISPLAY_MODE_TUI
+                and not self._interactive_mode)
 
     def dumpState(self):
         from meh import ExceptionInfo

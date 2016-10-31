@@ -31,6 +31,8 @@ from argparse import ArgumentParser, ArgumentError, HelpFormatter, Namespace, Ac
 from pyanaconda.flags import BootArgs
 from pyanaconda.flags import flags as flags_instance
 
+from pyanaconda.constants import DISPLAY_MODE_TUI, DISPLAY_MODE_GUI
+
 import logging
 log = logging.getLogger("anaconda")
 
@@ -383,13 +385,20 @@ def getArgumentParser(version_string, boot_cmdline=None):
     # Version
     ap.add_argument('--version', action='version', version="%(prog)s " + version_string)
 
+    class ParseCmdlineMode(Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            # We need to save both display mode to TEXT and set noninteractive flag
+            setattr(namespace, "display_mode",  DISPLAY_MODE_TUI)
+            setattr(namespace, "noninteractive", True)
+
     # Interface
-    ap.add_argument("-C", "--cmdline", dest="display_mode", action="store_const", const="c",
-                    default="g", help=help_parser.help_text("cmdline"))
-    ap.add_argument("-G", "--graphical", dest="display_mode", action="store_const", const="g",
+    ap.add_argument("-C", "--cmdline", action=ParseCmdlineMode, help=help_parser.help_text("cmdline"))
+    ap.add_argument("-G", "--graphical", dest="display_mode", action="store_const", const=DISPLAY_MODE_GUI,
                     help=help_parser.help_text("graphical"))
-    ap.add_argument("-T", "--text", dest="display_mode", action="store_const", const="t",
+    ap.add_argument("-T", "--text", dest="display_mode", action="store_const", const=DISPLAY_MODE_TUI,
                     help=help_parser.help_text("text"))
+    ap.add_argument("--noninteractive", dest="noninteractive", action="store_true",
+                    help=help_parser.help_text("noninteractive"))
 
     # Network
     ap.add_argument("--proxy", metavar='PROXY_URL', help=help_parser.help_text("proxy"))

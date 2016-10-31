@@ -196,6 +196,7 @@ def setup_display(anaconda, options, addon_paths=None):
     vnc_server.anaconda = anaconda
 
     anaconda.display_mode = options.display_mode
+    anaconda.interactive_mode = not options.noninteractive
     anaconda.isHeadless = blivet.arch.is_s390()
 
     if options.vnc:
