@@ -429,19 +429,10 @@ if __name__ == "__main__":
     startup_utils.setup_logging_from_options(opts)
 
     # assign the other anaconda variables from options
-    anaconda.decorated = opts.decorated
-    anaconda.proxy = opts.proxy
-    anaconda.updateSrc = opts.updateSrc
-    anaconda.methodstr = opts.method
-    anaconda.stage2 = opts.stage2
-    flags.rescue_mode = opts.rescue
-
-    if opts.liveinst:
-        startup_utils.live_startup(anaconda)
-    elif "LIVECMD" in os.environ:
-        log.warning("Running via liveinst, but not setting flags.livecdInstall - this is for testing only")
+    anaconda.load_opts()
 
     # set flags
+    flags.rescue_mode = opts.rescue
     flags.noverifyssl = opts.noverifyssl
     flags.armPlatform = opts.armPlatform
     flags.extlinux = opts.extlinux
@@ -457,6 +448,11 @@ if __name__ == "__main__":
     flags.eject = opts.eject
     flags.kexec = opts.kexec
     flags.singlelang = opts.singlelang
+
+    if opts.liveinst:
+        startup_utils.live_startup(anaconda)
+    elif "LIVECMD" in os.environ:
+        log.warning("Running via liveinst, but not setting flags.livecdInstall - this is for testing only")
 
     # Switch to tty1 on exception in case something goes wrong during X start.
     # This way if, for example, metacity doesn't start, we switch back to a

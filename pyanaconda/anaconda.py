@@ -56,6 +56,7 @@ class Anaconda(object):
         self.isHeadless = False
         self.ksdata = None
         self.methodstr = None
+        self.additional_repos = None
         self.opts = None
         self._payload = None
         self.proxy = None
@@ -225,6 +226,15 @@ class Anaconda(object):
         log.info("Display mode is set to '%s %s'.",
                  constants.INTERACTIVE_MODE_NAME[self.interactive_mode],
                  constants.DISPLAY_MODE_NAME[self.display_mode])
+
+    def load_opts(self):
+        """Load argument to variables from self.opts."""
+        self.decorated = self.opts.decorated
+        self.proxy = self.opts.proxy
+        self.updateSrc = self.opts.updateSrc
+        self.methodstr = self.opts.method
+        self.stage2 = self.opts.stage2
+        self.additional_repos = self.opts.addRepo
 
     def _set_default_fstype(self, storage):
         fstype = None
