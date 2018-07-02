@@ -32,7 +32,7 @@ from pyanaconda.core import util, constants
 from pyanaconda.modules.common.constants.objects import AUTO_PARTITIONING
 from pyanaconda.modules.common.constants.services import STORAGE
 from pyanaconda.startup_utils import run_boss, stop_boss
-from pyanaconda.payload.source import SourceFactory
+from pyanaconda.payload.source import SourceFactory, PayloadSourceTypeUnrecognized
 
 from pyanaconda.anaconda_loggers import get_stdout_logger
 stdoutLog = get_stdout_logger()
@@ -250,6 +250,29 @@ class Anaconda(object):
         self.methodstr = self.opts.method
         self.stage2 = self.opts.stage2
         self.additional_repos = self.opts.addRepo
+
+    def add_additional_repositories_to_ksdata(self):
+        from pyanaconda.kickstart import RepoData
+
+        for add_repo in self.additional_repos:
+            name, repo_url = self._split_additional_repo(add_repo)
+            try:
+                source = SourceFactory.parse_cmdline(repo_url)
+            except PayloadSourceTypeUnrecognized:
+                log.error("Type for additional repository %s is not recognized!", add_repo)
+                return
+
+            repo = RepoData(name=name, baseurl=repo_url, install=False)
+
+            if source.is_nfs or source.is_http or source.is_https or source.is_ftp \
+                    or source.is_file:
+                repo.enabled = True
+            else:
+                log.error("Source type %s for additional repository %s is not supported!",
+                          source.source_type.value, add_repo)
+                continue
+
+            self.ksdata.repo.dataList().append(repo)
 
     def _set_default_fstype(self, storage):
         fstype = None
