@@ -264,8 +264,10 @@ class Anaconda(object):
 
             repo = RepoData(name=name, baseurl=repo_url, install=False)
 
-            if source.is_nfs or source.is_http or source.is_https or source.is_ftp \
-                    or source.is_file:
+            if source.is_harddrive:
+                repo.harddrive_spec = repo_url
+                repo.enabled = True
+            elif source.is_nfs or source.is_http or source.is_https or source.is_ftp:
                 repo.enabled = True
             else:
                 log.error("Source type %s for additional repository %s is not supported!",

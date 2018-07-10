@@ -1918,8 +1918,13 @@ class RepoData(commands.repo.F27_RepoData):
         """
         self.enabled = kwargs.pop("enabled", True)
         self.repo_id = kwargs.pop("repo_id", None)
+        self.harddrive_spec = ""
 
         super().__init__(*args, **kwargs)
+
+    @property
+    def is_harddrive(self):
+        return self.harddrive_spec != ""
 
     def __str__(self):
         """Don't output disabled repos"""
