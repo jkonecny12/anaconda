@@ -79,6 +79,7 @@ REPO_DIRS = ['/etc/yum.repos.d',
 YUM_REPOS_DIR = "/etc/yum.repos.d/"
 
 from pyanaconda.product import productName, productVersion
+from pyanaconda.payload.source import SourceFactory
 USER_AGENT = "%s (anaconda)/%s" % (productName, productVersion)
 
 # Bonus to required free space which depends on block size and rpm database size estimation.
@@ -1055,7 +1056,7 @@ class DNFPayload(payload.PackagePayload):
     def updateBaseRepo(self, fallback=True, checkmount=True):
         log.info('configuring base repo')
         self.reset()
-        url, mirrorlist, metalink = self._setupInstallDevice(self.storage, checkmount)
+        url, mirrorlist, metalink = self._setupBaseInstallDevice(self.storage, checkmount)
 
         method = self.data.method
         sslverify = True
@@ -1130,6 +1131,7 @@ class DNFPayload(payload.PackagePayload):
 
         for repo in self.addOns:
             ksrepo = self.getAddOnRepo(repo)
+            self._setupAddOnInstallDevice(self.storage, ksrepo)
             log.debug("repo %s: mirrorlist %s, baseurl %s, metalink %s",
                       ksrepo.name, ksrepo.mirrorlist, ksrepo.baseurl, ksrepo.metalink)
             # one of these must be set to create new repo

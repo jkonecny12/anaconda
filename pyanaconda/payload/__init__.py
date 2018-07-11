@@ -38,6 +38,8 @@ from collections import OrderedDict, namedtuple
 
 from blivet.size import Size, ROUND_HALF_UP
 
+from pyanaconda.payload.source import SourceFactory
+
 if __name__ == "__main__":
     from pyanaconda import anaconda_logging
     anaconda_logging.init()
@@ -1197,7 +1199,27 @@ class PackagePayload(Payload):
 
         return url
 
-    def _setupInstallDevice(self, storage, checkmount):
+    def _setupAddOnInstallDevice(self, storage, ksrepo):
+        if not ksrepo.is_harddrive:
+            return ksrepo.baseurl
+
+        iso_dir = ISO_DIR + "-" + ksrepo.name
+        install_dir = INSTALL_TREE + "-" + ksrepo.name
+        install_source = SourceFactory.parse_cmdline(ksrepo.harddrive_spec)
+
+        devspec = install_source.partition
+        isodevice = storage.devicetree.resolve_device(devspec)
+
+        if not isodevice:
+            raise PayloadSetupError("Device for {} addon repo {} does not exist".format(
+                ksrepo.name, devspec))
+
+        self._setupHDDMounts(isodevice, iso_dir, install_source.path, install_dir)
+        url = "file://" + install_dir
+
+        return url
+
+    def _setupBaseInstallDevice(self, storage, checkmount):
         # XXX FIXME: does this need to handle whatever was set up by dracut?
         method = self.data.method
         url = None
