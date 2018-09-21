@@ -201,6 +201,18 @@ def parse_arguments(argv=None, boot_cmdline=None):
     namespace = ap.parse_args(argv, boot_cmdline=boot_cmdline)
     return (namespace, ap.deprecated_bootargs)
 
+def check_arguments(namespace, logger):
+    from pyanaconda.argument_parsing import ArgumentChecker
+    from pyanaconda.errors import AnacondaArgumentError
+
+    ac = ArgumentChecker()
+
+    try:
+        ac.validate_args(namespace)
+    except AnacondaArgumentError as e:
+        print("")  # print blank line to make the message easier to read
+        exit_on_error(logger, str(e))
+
 def setup_python_path():
     """Add items Anaconda needs to sys.path."""
     # First add our updates path
@@ -422,6 +434,8 @@ if __name__ == "__main__":
 
     # add our own additional signal handlers
     signal.signal(signal.SIGHUP, start_debugger)
+
+    check_arguments(opts, stdout_log)
 
     # assign the other anaconda variables from options
     anaconda.set_from_opts(opts)
