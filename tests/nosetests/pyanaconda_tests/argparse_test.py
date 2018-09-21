@@ -18,6 +18,7 @@
 #
 
 from pyanaconda import argument_parsing
+from pyanaconda.errors import AnacondaArgumentError
 from pyanaconda.flags import BootArgs
 from pyanaconda.core.constants import DisplayModes
 import unittest
@@ -27,6 +28,14 @@ class ArgparseTest(unittest.TestCase):
         ap = argument_parsing.getArgumentParser(version, boot_cmdline)
         opts = ap.parse_args(argv, boot_cmdline=boot_cmdline)
         return (opts, ap.deprecated_bootargs)
+
+    def _check_arguments(self, opts):
+        ac = argument_parsing.ArgumentChecker()
+        ac.validate_args(opts)
+
+    def _check_arguments_with_error(self, opts):
+        with self.assertRaises(AnacondaArgumentError):
+            self._check_arguments(opts)
 
     def display_mode_test(self):
         opts, _deprecated = self._parseCmdline(['--cmdline'])
@@ -85,3 +94,52 @@ class ArgparseTest(unittest.TestCase):
         # with an argument, dirinstall should use that
         opts, _deprecated = self._parseCmdline(['--dirinstall=/what/ever'])
         self.assertEqual(opts.dirinstall, "/what/ever")
+
+    def addrepo_successful_test(self):
+        opts, _deprecated = self._parseCmdline("",boot_cmdline="addrepo=name,http://fork.com/repo")
+        self.assertEqual(opts.addRepo, ["name,http://fork.com/repo"])
+        self._check_arguments(opts)
+
+        opts, _deprecated = self._parseCmdline(["--addrepo=name,http://spoon.com/repo"])
+        self.assertEqual(opts.addRepo, ["name,http://spoon.com/repo"])
+        self._check_arguments(opts)
+
+    def addrepo_multiple_test(self):
+        opts, _deprecated = self._parseCmdline("",
+                                               boot_cmdline="addrepo=name,http://knife.net/repo "
+                                                            "addrepo=name2,http://knife.net/repo2")
+        self.assertEqual(opts.addRepo, ["name,http://knife.net/repo",
+                                        "name2,http://knife.net/repo2"])
+        self._check_arguments(opts)
+
+        opts, _deprecated = self._parseCmdline(["--addrepo=name,http://pan.net/repo",
+                                                "--addrepo=name2,http://pan.net/repo2"])
+        self.assertEqual(opts.addRepo, ["name,http://pan.net/repo", "name2,http://pan.net/repo2"])
+        self._check_arguments(opts)
+
+    def addrepo_fail_missing_value_test(self):
+        opts, _deprecated = self._parseCmdline("",boot_cmdline="addrepo=http://bowl.com/repo")
+        self.assertEqual(opts.addRepo, ["http://bowl.com/repo"])
+        self._check_arguments_with_error(opts)
+
+        opts, _deprecated = self._parseCmdline(["--addrepo=http://owen.com/repo"])
+        self.assertEqual(opts.addRepo, ["http://owen.com/repo"])
+        self._check_arguments_with_error(opts)
+
+    def addrepo_fail_empty_name_test(self):
+        opts, _deprecated = self._parseCmdline("",boot_cmdline="addrepo=,http://cooker.com/repo")
+        self.assertEqual(opts.addRepo, [",http://cooker.com/repo"])
+        self._check_arguments_with_error(opts)
+
+        opts, _deprecated = self._parseCmdline(["--addrepo=,http://roller.com/repo"])
+        self.assertEqual(opts.addRepo, [",http://roller.com/repo"])
+        self._check_arguments_with_error(opts)
+
+    def addrepo_fail_empty_value_test(self):
+        opts, _deprecated = self._parseCmdline("",boot_cmdline="addrepo=name,")
+        self.assertEqual(opts.addRepo, ["name,"])
+        self._check_arguments_with_error(opts)
+
+        opts, _deprecated = self._parseCmdline(["--addrepo=name2,"])
+        self.assertEqual(opts.addRepo, ["name2,"])
+        self._check_arguments_with_error(opts)
