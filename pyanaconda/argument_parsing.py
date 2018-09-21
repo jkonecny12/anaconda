@@ -16,9 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-DESCRIPTION = "Anaconda is the installation program used by Fedora," \
-              "Red Hat Enterprise Linux and some other distributions."
-
 import itertools
 import os
 import sys
@@ -42,6 +39,10 @@ log = get_module_logger(__name__)
 LEFT_PADDING = 8  # the help text will start after 8 spaces
 RIGHT_PADDING = 8  # there will be 8 spaces left on the right
 DEFAULT_HELP_WIDTH = 80
+
+DESCRIPTION = "Anaconda is the installation program used by Fedora," \
+              "Red Hat Enterprise Linux and some other distributions."
+
 
 def get_help_width():
     """
@@ -80,6 +81,7 @@ def get_help_width():
         help_width = DEFAULT_HELP_WIDTH
 
     return help_width
+
 
 class AnacondaArgumentParser(ArgumentParser):
     """
@@ -249,6 +251,7 @@ class AnacondaArgumentParser(ArgumentParser):
 
         return namespace
 
+
 class ArgumentChecker(object):
     def validate_args(self, namespace):
         errors = []
@@ -286,6 +289,7 @@ class ArgumentChecker(object):
     def _error_message(command, origin_line, error_description):
         return "Error in argument command: '{}' value: '{}'description: {}".format(
             command, origin_line, error_description)
+
 
 def name_path_pairs(image_specs):
     """Processes and verifies image file specifications. Generates pairs
@@ -340,6 +344,7 @@ def name_path_pairs(image_specs):
         names_seen.append(name)
 
         yield name, path
+
 
 class HelpTextParser(object):
     """Class to parse help text from file and make it available to option
@@ -399,6 +404,7 @@ class HelpTextParser(object):
                 log.error("error reading help text file %s: %s", self._path, e)
 
         return self._help_text.get(option, "")
+
 
 def getArgumentParser(version_string, boot_cmdline=None):
     """Return the anaconda argument parser.
