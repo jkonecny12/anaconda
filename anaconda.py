@@ -248,6 +248,13 @@ def start_debugger(signum, frame):
     import epdb
     epdb.serve(skip=1)
 
+def exit_on_error(log, message, timeout=0, ipmi_script=None):
+    log.error(message)
+    util.ipmi_abort(ipmi_script)
+    if timeout != 0:
+        time.sleep(timeout)
+    sys.exit(1)
+
 if __name__ == "__main__":
     # check if the CLI help is requested and return it at once,
     # without importing random stuff and spamming stdout
@@ -341,14 +348,10 @@ if __name__ == "__main__":
     util.ipmi_report(constants.IPMI_STARTED)
 
     if (opts.images or opts.dirinstall) and opts.liveinst:
-        stdout_log.error("--liveinst cannot be used with --images or --dirinstall")
-        util.ipmi_report(constants.IPMI_ABORTED)
-        sys.exit(1)
+        exit_on_error(stdout_log, "--liveinst cannot be used with --images or --dirinstall")
 
     if opts.images and opts.dirinstall:
-        stdout_log.error("--images and --dirinstall cannot be used at the same time")
-        util.ipmi_report(constants.IPMI_ABORTED)
-        sys.exit(1)
+        exit_on_error(stdout_log, "--images and --dirinstall cannot be used at the same time")
     elif opts.dirinstall:
         root_path = opts.dirinstall
         util.setTargetPhysicalRoot(root_path)
@@ -483,10 +486,7 @@ if __name__ == "__main__":
 
     # Make sure that all DBus modules are ready.
     if not startup_utils.wait_for_modules():
-        stdout_log.error("Anaconda DBus modules failed to start on time.")
-        util.ipmi_report(constants.IPMI_ABORTED)
-        time.sleep(10)
-        sys.exit(1)
+        exit_on_error(stdout_log, "Anaconda DBus modules failed to start on time.", timeout=10)
 
     # If we were given a kickstart file on the command line, parse (but do not
     # execute) that now.  Otherwise, load in defaults from kickstart files
@@ -680,9 +680,8 @@ if __name__ == "__main__":
             image_count += 1
             flags.imageInstall = True
     except ValueError as e:
-        stdout_log.error("error specifying image file: %s", e)
-        util.ipmi_abort(scripts=ksdata.scripts)
-        sys.exit(1)
+        exit_on_error(stdout_log, "error specifying image file: {}".format(e),
+                      ipmi_script=ksdata.scripts)
 
     if image_count:
         anaconda.storage.setup_disk_images()
