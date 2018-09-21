@@ -20,7 +20,8 @@ from pyanaconda.core.i18n import _, C_
 from pyanaconda.flags import flags
 
 __all__ = ["ERROR_RAISE", "ERROR_CONTINUE", "ERROR_RETRY", "errorHandler", "InvalidImageSizeError",
-           "MissingImageError", "ScriptError", "NonInteractiveError", "CmdlineError", "ExitError"]
+           "MissingImageError", "ScriptError", "NonInteractiveError", "CmdlineError", "ExitError",
+           "AnacondaArgumentError"]
 
 
 class InvalidImageSizeError(Exception):
@@ -63,6 +64,11 @@ class ZIPLError(Exception):
 
 
 class ExitError(RuntimeError):
+    pass
+
+
+class AnacondaArgumentError(Exception):
+    """Error when Anaconda argument has a bad format."""
     pass
 
 

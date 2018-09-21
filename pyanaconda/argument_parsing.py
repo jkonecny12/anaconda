@@ -28,6 +28,7 @@ import struct
 
 from argparse import ArgumentParser, ArgumentError, HelpFormatter, Namespace, Action
 
+from pyanaconda.errors import AnacondaArgumentError
 from pyanaconda.flags import BootArgs
 from pyanaconda.flags import flags as flags_instance
 
@@ -247,7 +248,46 @@ class AnacondaArgumentParser(ArgumentParser):
         # with the same destination already present in the namespace
         # NOTE: this means that CLI options override boot options
         namespace = super().parse_args(args, namespace)
+
         return namespace
+
+class ArgumentChecker(object):
+    def validate_args(self, namespace):
+        errors = []
+
+        if hasattr(namespace, "addRepo"):
+            errors.extend(self._addrepo_check(namespace.addRepo))
+
+        if errors:
+            raise AnacondaArgumentError("\n".join(errors))
+
+    def _addrepo_check(self, addrepo_boot_arg):
+        errors = []
+
+        for repo in addrepo_boot_arg:
+            try:
+                name, rest = repo.split(',', maxsplit=1)
+            except ValueError:
+                errors.append(self._error_message("addrepo", repo,
+                                                  "Bad format of the addrepo parameter! "
+                                                  "Correct format is inst.addrepo=<name>,<url>"))
+                continue
+
+            if not name:
+                errors.append(self._error_message("addrepo", repo,
+                                                  "Name for inst.addrepo can't be empty!"))
+                continue
+            if not rest:
+                errors.append(self._error_message("addrepo", repo,
+                                                  "URL for inst.addrepo can't be empty!"))
+                continue
+
+        return errors
+
+    @staticmethod
+    def _error_message(command, origin_line, error_description):
+        return "Error in argument command: '{}' value: '{}'description: {}".format(
+            command, origin_line, error_description)
 
 def name_path_pairs(image_specs):
     """Processes and verifies image file specifications. Generates pairs
