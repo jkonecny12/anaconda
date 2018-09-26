@@ -123,6 +123,8 @@ class AnacondaArgumentParser(ArgumentParser):
                                     prog, max_help_position=LEFT_PADDING, width=help_width),
                                 *args, **kwargs)
 
+        self._catched_bootargs_errors = []
+
     @staticmethod
     def _get_help_width():
         """
@@ -247,6 +249,7 @@ class AnacondaArgumentParser(ArgumentParser):
         # NOTE: program cmdline overrides boot cmdline
         for arg, val in bootargs.items():
             option = self._get_bootarg_option(arg)
+
             if option is None:
                 # this boot option is unknown to Anaconda, skip it
                 continue
@@ -257,7 +260,7 @@ class AnacondaArgumentParser(ArgumentParser):
                             "arguments and will be ignored: %s", arg)
                 continue
             elif option.nargs == 0 and option.const is not None:
-                # nargs == 0 & constr == True -> store_true
+                # nargs == 0 & const == True -> store_true
                 # (we could also check the class, but it begins with an
                 # underscore, so it would be ugly)
                 # special case: "mpath=0" would otherwise set mpath to True
@@ -274,11 +277,27 @@ class AnacondaArgumentParser(ArgumentParser):
                 continue
             elif type(val) is list:
                 for item in val:
-                    option(self, namespace, item)
+                    self._set_boot_args(option, arg, item, namespace)
                 continue
 
-            option(self, namespace, val)
+            self._set_boot_args(option, arg, val, namespace)
         return namespace
+
+    def _set_boot_args(self, option, arg, val, namespace):
+        if option.type:
+            try:
+                val = option.type(val)
+            except Exception as ex:  # pylint: disable=broad-except
+                msg = "Error in argument '{}' value '{}' description: {}".format(arg, val, str(ex))
+                self._catched_bootargs_errors.append(msg)
+
+        option(self, namespace, val)
+
+    def process_errors(self):
+        if self._catched_bootargs_errors:
+            return "\n".join(self._catched_bootargs_errors)
+
+        return ""
 
     # pylint: disable=arguments-differ
     def parse_args(self, args=None, boot_cmdline=None):
