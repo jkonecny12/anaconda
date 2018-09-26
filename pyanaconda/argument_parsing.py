@@ -44,43 +44,59 @@ DESCRIPTION = "Anaconda is the installation program used by Fedora," \
               "Red Hat Enterprise Linux and some other distributions."
 
 
-def get_help_width():
+def name_path_pairs(image_specs):
+    """Processes and verifies image file specifications. Generates pairs
+       of names and paths.
+
+       :param image_specs: a list of image specifications
+       :type image_specs: list of str
+
+       Each image spec in image_specs has format <path>[:<name>] where
+       <path> is the path to a local file and <name> is an optional
+       name used to identify the disk in UI. <name> may not contain colons
+       or slashes.
+
+       If no name given in specification, synthesizes name from basename
+       of path. Since two distinct paths may have the same basename, handles
+       name collisions by synthesizing a different name for the colliding
+       name.
+
+       Raises an exception if:
+         * A path is empty
+         * A path specifies a non-existant file
+         * A path specifies a directory
+         * Duplicate paths are specified
+         * A name contains a "/"
     """
-    Try to detect the terminal window width size and use it to
-    compute optimal help text width. If it can't be detected
-    a default values is returned.
+    image_specs = (spec.rsplit(":", 1) for spec in image_specs)
+    path_name_pairs = ((image_spec[0], image_spec[1].strip() if len(image_spec) == 2 else None) for image_spec in image_specs)
 
-    :returns: optimal help text width in number of characters
-    :rtype: int
-    """
-    # don't do terminal size detection on s390, it is not supported
-    # by its arcane TTY system and only results in cryptic error messages
-    # ending on the standard output
-    # (we do the s390 detection here directly to avoid
-    #  the delay caused by importing the Blivet module
-    #  just for this single call)
-    is_s390 = os.uname()[4].startswith('s390')
-    if is_s390:
-        return DEFAULT_HELP_WIDTH
+    paths_seen = []
+    names_seen = []
+    for (path, name) in path_name_pairs:
+        if path == "":
+            raise ValueError("empty path specified for image file")
+        path = os.path.abspath(path)
+        if not os.path.exists(path):
+            raise ValueError("non-existant path %s specified for image file" % path)
+        if os.path.isdir(path):
+            raise ValueError("directory path %s specified for image file" % path)
+        if path in paths_seen:
+            raise ValueError("path %s specified twice for image file" % path)
+        paths_seen.append(path)
 
-    try:
-        data = fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, '1234')
-        columns = int(struct.unpack('hh', data)[1])
-    except (IOError, ValueError) as e:
-        log.info("Unable to determine terminal width: %s", e)
-        print("terminal size detection failed, using default width")
-        return DEFAULT_HELP_WIDTH
+        if name and "/" in name:
+            raise ValueError("improperly formatted image file name %s, includes slashes" % name)
 
-    log.debug("detected window size of %s", columns)
+        if not name:
+            name = os.path.splitext(os.path.basename(path))[0]
 
-    # apply the right padding
-    columns = columns - RIGHT_PADDING
-    if columns > 0:
-        help_width = columns
-    else:
-        help_width = DEFAULT_HELP_WIDTH
+        if name in names_seen:
+            names = ("%s_%d" % (name, n) for n in itertools.count())
+            name = next(itertools.dropwhile(lambda n: n in names_seen, names))
+        names_seen.append(name)
 
-    return help_width
+        yield name, path
 
 
 class AnacondaArgumentParser(ArgumentParser):
@@ -97,7 +113,7 @@ class AnacondaArgumentParser(ArgumentParser):
             False: accept the argument with or without the prefix.
             True: ignore the argument without the prefix. (default)
         """
-        help_width = get_help_width()
+        help_width = self._get_help_width()
         self._boot_arg = dict()
         self.deprecated_bootargs = []
         self.bootarg_prefix = kwargs.pop("bootarg_prefix", "")
@@ -106,6 +122,45 @@ class AnacondaArgumentParser(ArgumentParser):
                                 formatter_class=lambda prog: HelpFormatter(
                                     prog, max_help_position=LEFT_PADDING, width=help_width),
                                 *args, **kwargs)
+
+    @staticmethod
+    def _get_help_width():
+        """
+        Try to detect the terminal window width size and use it to
+        compute optimal help text width. If it can't be detected
+        a default values is returned.
+
+        :returns: optimal help text width in number of characters
+        :rtype: int
+        """
+        # don't do terminal size detection on s390, it is not supported
+        # by its arcane TTY system and only results in cryptic error messages
+        # ending on the standard output
+        # (we do the s390 detection here directly to avoid
+        #  the delay caused by importing the Blivet module
+        #  just for this single call)
+        is_s390 = os.uname()[4].startswith('s390')
+        if is_s390:
+            return DEFAULT_HELP_WIDTH
+
+        try:
+            data = fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, '1234')
+            columns = int(struct.unpack('hh', data)[1])
+        except (IOError, ValueError) as e:
+            log.info("Unable to determine terminal width: %s", e)
+            print("terminal size detection failed, using default width")
+            return DEFAULT_HELP_WIDTH
+
+        log.debug("detected window size of %s", columns)
+
+        # apply the right padding
+        columns = columns - RIGHT_PADDING
+        if columns > 0:
+            help_width = columns
+        else:
+            help_width = DEFAULT_HELP_WIDTH
+
+        return help_width
 
     def add_argument(self, *args, **kwargs):
         """
@@ -289,61 +344,6 @@ class ArgumentChecker(object):
     def _error_message(command, origin_line, error_description):
         return "Error in argument command: '{}' value: '{}'description: {}".format(
             command, origin_line, error_description)
-
-
-def name_path_pairs(image_specs):
-    """Processes and verifies image file specifications. Generates pairs
-       of names and paths.
-
-       :param image_specs: a list of image specifications
-       :type image_specs: list of str
-
-       Each image spec in image_specs has format <path>[:<name>] where
-       <path> is the path to a local file and <name> is an optional
-       name used to identify the disk in UI. <name> may not contain colons
-       or slashes.
-
-       If no name given in specification, synthesizes name from basename
-       of path. Since two distinct paths may have the same basename, handles
-       name collisions by synthesizing a different name for the colliding
-       name.
-
-       Raises an exception if:
-         * A path is empty
-         * A path specifies a non-existant file
-         * A path specifies a directory
-         * Duplicate paths are specified
-         * A name contains a "/"
-    """
-    image_specs = (spec.rsplit(":", 1) for spec in image_specs)
-    path_name_pairs = ((image_spec[0], image_spec[1].strip() if len(image_spec) == 2 else None) for image_spec in image_specs)
-
-    paths_seen = []
-    names_seen = []
-    for (path, name) in path_name_pairs:
-        if path == "":
-            raise ValueError("empty path specified for image file")
-        path = os.path.abspath(path)
-        if not os.path.exists(path):
-            raise ValueError("non-existant path %s specified for image file" % path)
-        if os.path.isdir(path):
-            raise ValueError("directory path %s specified for image file" % path)
-        if path in paths_seen:
-            raise ValueError("path %s specified twice for image file" % path)
-        paths_seen.append(path)
-
-        if name and "/" in name:
-            raise ValueError("improperly formatted image file name %s, includes slashes" % name)
-
-        if not name:
-            name = os.path.splitext(os.path.basename(path))[0]
-
-        if name in names_seen:
-            names = ("%s_%d" % (name, n) for n in itertools.count())
-            name = next(itertools.dropwhile(lambda n: n in names_seen, names))
-        names_seen.append(name)
-
-        yield name, path
 
 
 class HelpTextParser(object):
