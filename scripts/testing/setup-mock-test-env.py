@@ -308,6 +308,11 @@ def copy_anaconda_to_mock(mock_command):
     _check_subprocess(cmd, "Can't copy Anaconda to mock.")
 
 
+def copy_python_only_to_mock(mock_command):
+    anaconda_dir = _resolve_top_dir()
+    mock_anaconda_dir = _get_mock_anaconda_path(mock_command)
+
+
 def copy_zanata_config_to_mock(mock_command):
     create_dir_in_mock(mock_command, '/builddir/.config')
 
@@ -451,6 +456,9 @@ if __name__ == "__main__":
 
     if ns.copy:
         copy_anaconda_to_mock(mock_cmd)
+
+    if ns.copy_python_only:
+        copy_python_only_to_mock(mock_cmd)
 
     if ns.prepare:
         prepare_anaconda(mock_cmd)
