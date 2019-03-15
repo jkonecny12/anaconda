@@ -251,6 +251,17 @@ def get_required_pip_packages():
     return proc_res.stdout.decode('utf-8').strip()
 
 
+def _get_mock_anaconda_path(mock_command):
+    cmd = _prepare_command(mock_command)
+
+    cmd.append('--print-root-path')
+
+    proc_res = _check_subprocess(cmd, "Can't get root path of a created mock.", stdout_pipe=True)
+    stdout = proc_res.stdout.decode('utf-8').strip()
+
+    return os.path.join(stdout, ANACONDA_MOCK_PATH[1:])
+
+
 def install_required_packages(mock_command, release=False):
     packages = get_required_packages()
 
