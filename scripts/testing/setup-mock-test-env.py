@@ -193,6 +193,10 @@ One of these commands must be used. These commands can be combined.
                        keep existing mock and only replace Anaconda folder in it;
                        this will not re-init mock chroot
                        """)
+    group.add_argument('--copy-python-only', '-cp', action='store_true', dest='copy_python_only',
+                       help="""
+                       works the same as --copy but it will copy only the python code to the mock
+                       """)
     group.add_argument('--prepare', '-p', action='store_true', dest='prepare',
                        help="""
                        run configure and autogen.sh on Anaconda inside of mock
@@ -207,7 +211,10 @@ One of these commands must be used. These commands can be combined.
 
 def check_args(namespace):
     if namespace.run_tests and namespace.nose_targets is not None:
-        raise AttributeError("You can't combine `--run-tests` and `--run-nosetests` commands!")
+        raise AttributeError("Can't combine `--run-tests` and `--run-nosetests` parameters!")
+
+    if namespace.copy and namespace.copy_python_only:
+        raise AttributeError("Can't combine --copy and --copy-python-only parameters!")
 
     # prepare will be called by tests automatically
     if namespace.run_tests or namespace.nose_targets is not None:
@@ -413,7 +420,7 @@ if __name__ == "__main__":
     mock_cmd = create_mock_command(ns.mock_config, ns.uniqueext)
     success = True
 
-    if not any([ns.init, ns.copy, ns.run_tests, ns.install, ns.install_pip]):
+    if not any([ns.init, ns.copy, ns.copy_python_only, ns.run_tests, ns.install, ns.install_pip]):
         print("You need to specify one of the main commands!", file=sys.stderr)
         print("Run './setup-mock-test-env.py --help' for more info.", file=sys.stderr)
         exit(1)
