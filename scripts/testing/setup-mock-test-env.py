@@ -28,6 +28,7 @@ import subprocess
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from os.path import expanduser
+from filecmp import dircmp
 
 
 DEPENDENCY_SOLVER = "dependency_solver.py"
@@ -216,10 +217,6 @@ def check_args(namespace):
     if namespace.copy and namespace.copy_python_only:
         raise AttributeError("Can't combine --copy and --copy-python-only parameters!")
 
-    # prepare will be called by tests automatically
-    if namespace.run_tests or namespace.nose_targets is not None:
-        namespace.prepare = False
-
 
 def get_required_packages():
     """Get required packages for running Anaconda tests."""
@@ -312,6 +309,17 @@ def copy_python_only_to_mock(mock_command):
     anaconda_dir = _resolve_top_dir()
     mock_anaconda_dir = _get_mock_anaconda_path(mock_command)
 
+    dcmp = dircmp(anaconda_dir, mock_anaconda_dir)
+
+    changed_files = []
+    removed_files = []
+
+    dcmp.report()
+    for name in dcmp.diff_files:
+        print(name)
+
+    for d_name in dcmp.subdirs:
+        print(d_name)
 
 def copy_zanata_config_to_mock(mock_command):
     create_dir_in_mock(mock_command, '/builddir/.config')
@@ -373,8 +381,6 @@ def prepare_anaconda(mock_command):
 
 
 def run_tests(mock_command):
-    prepare_anaconda(mock_command)
-
     cmd = _prepare_command(mock_command)
 
     cmd = _run_cmd_in_chroot(cmd)
@@ -386,8 +392,6 @@ def run_tests(mock_command):
 
 
 def run_nosetests(mock_command, specified_test_files):
-    prepare_anaconda(mock_command)
-
     cmd = _prepare_command(mock_command)
 
     specified_test_files = _replace_prefix_paths(specified_test_files, NOSE_TESTS_PREFIX)
@@ -436,7 +440,7 @@ if __name__ == "__main__":
     mock_cmd = create_mock_command(ns.mock_config, ns.uniqueext)
     success = True
 
-    if not any([ns.init, ns.copy, ns.copy_python_only, ns.run_tests, ns.install, ns.install_pip]):
+    if not any([ns.init, ns.copy, ns.copy_python_only, ns.run_tests, ns.nose_targets is not None, ns.install, ns.install_pip]):
         print("You need to specify one of the main commands!", file=sys.stderr)
         print("Run './setup-mock-test-env.py --help' for more info.", file=sys.stderr)
         exit(1)
