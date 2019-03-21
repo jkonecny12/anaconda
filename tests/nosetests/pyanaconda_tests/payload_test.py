@@ -18,13 +18,16 @@
 # Authors: Jiri Konecny <jkonecny@redhat.com>
 #
 
-from pyanaconda.payload import dnfpayload
-from blivet.size import Size
 import unittest
 import tempfile
 import os
 import hashlib
 import shutil
+
+from mock import Mock
+
+from pyanaconda.payload import dnfpayload
+from blivet.size import Size
 
 from pyanaconda.payload.dnfpayload import RepoMDMetaHash
 from pyanaconda.payload.requirement import PayloadRequirements
@@ -102,6 +105,7 @@ class DummyPayload(object):
                 self.method = DummyMethod()
 
         self.data = DummyData()
+        self.is_ssl_verification_enabled = Mock()
 
 
 class DNFPayloadMDCheckTests(unittest.TestCase):

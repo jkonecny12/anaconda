@@ -81,6 +81,23 @@ class Payload(metaclass=ABCMeta):
     def first_payload_reset(self):
         return self._first_payload_reset
 
+    @property
+    def is_ssl_verification_enabled(self):
+        """Is the ssl verification for HTTP connection disabled?
+
+        This is combination of local kickstart configuration and global configuration.
+        The global configuration comes from configuration file and boot options.
+
+        If anything from the above is disabling the verification than this option will be False.
+
+        :return: if the ssl verification should be enabled
+        :rtype: bool
+        """
+        if hasattr(self.data.method, "noverifyssl"):
+            return not (self.data.method.noverifyssl or conf.payload.no_verify_ssl)
+        else:
+            return not conf.payload.no_verify_ssl
+
     def setup(self, storage):
         """Do any payload-specific setup."""
         self.storage = storage
@@ -384,7 +401,7 @@ class Payload(metaclass=ABCMeta):
         #   - the path to a cert file
         #   - True, to use the system's certificates
         #   - False, to not verify
-        ssl_verify = getattr(self.data.method, "sslcacert", not flags.noverifyssl)
+        ssl_verify = getattr(self.data.method, "sslcacert", self.is_ssl_verification_enabled)
 
         ssl_client_cert = getattr(self.data.method, "ssl_client_cert", None)
         ssl_client_key = getattr(self.data.method, "ssl_client_key", None)

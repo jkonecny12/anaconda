@@ -39,7 +39,6 @@ class Flags(object):
         self.mpath = True
         self.debug = False
         self.preexisting_x11 = False
-        self.noverifyssl = False
         self.automatedInstall = False
         self.askmethod = False
         self.eject = True

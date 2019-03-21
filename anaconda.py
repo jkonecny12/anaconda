@@ -414,7 +414,6 @@ if __name__ == "__main__":
 
     # set flags
     flags.rescue_mode = opts.rescue
-    flags.noverifyssl = opts.noverifyssl
     flags.debug = opts.debug
     flags.askmethod = opts.askmethod
     flags.mpath = opts.mpath
@@ -542,8 +541,6 @@ if __name__ == "__main__":
             util.setenv("ftp_proxy", proxy.url)
             util.setenv("HTTPS_PROXY", proxy.url)
 
-    if flags.noverifyssl and hasattr(ksdata.method, "noverifyssl"):
-        ksdata.method.noverifyssl = flags.noverifyssl
     if opts.multiLib:
         # sets dnf's multilib_policy to "all" (as opposed to "best")
         ksdata.packages.multiLib = opts.multiLib
