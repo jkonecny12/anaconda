@@ -20,8 +20,13 @@
 from unittest import TestCase
 from mock import patch
 
+from pyanaconda.core.configuration.payload import PayloadHandlerType
+from pyanaconda.modules.common.errors.payload import HandlerNotSetError
 from pyanaconda.modules.payload.payload_interface import PayloadInterface
 from pyanaconda.modules.payload.payload import PayloadModule
+from pyanaconda.modules.payload.dnf.dnf import DNFHandlerModule
+from pyanaconda.modules.payload.live.live_os import LiveOSHandlerModule
+from pyanaconda.modules.payload.live.live_image import LiveImageHandlerModule
 from pyanaconda.modules.common.constants.objects import PAYLOAD_DEFAULT, LIVE_OS_HANDLER, \
     LIVE_IMAGE_HANDLER
 
@@ -46,6 +51,55 @@ class PayloadInterfaceTestCase(TestCase):
     def generate_kickstart_without_handler_test(self):
         """Test kickstart parsing without handler set."""
         self.assertEqual(self.payload_interface.GenerateKickstart(), "")
+
+    @patch('pyanaconda.dbus.DBus.publish_object')
+    @patch('pyanaconda.modules.payload.payload.conf')
+    def pick_dnf_default_handler_test(self, conf, publisher):
+        """Test that dnf handler is set correctly based on the configuration value."""
+        conf.payload.default_handler = PayloadHandlerType.DNF
+
+        # invoke default payload creation
+        self.payload_interface.ReadKickstart("")
+        self.assertIsInstance(self.payload_module.payload_handler, DNFHandlerModule)
+        self.assertEqual(self.payload_interface.GetActiveHandlerPath(),
+                         PAYLOAD_DEFAULT.object_path)
+        # here the publisher is called twice because the Packages section is also published
+        self.assertEqual(publisher.call_count, 2)
+
+    @patch('pyanaconda.dbus.DBus.publish_object')
+    @patch('pyanaconda.modules.payload.payload.conf')
+    def pick_live_os_default_handler_test(self, conf, publisher):
+        """Test that live os handler is set correctly based on the configuration value."""
+        conf.payload.default_handler = PayloadHandlerType.LIVE_OS
+
+        # invoke default payload creation
+        self.payload_interface.ReadKickstart("")
+        self.assertIsInstance(self.payload_module.payload_handler, LiveOSHandlerModule)
+        self.assertEqual(self.payload_interface.GetActiveHandlerPath(),
+                         LIVE_OS_HANDLER.object_path)
+        publisher.assert_called_once()
+
+    @patch('pyanaconda.dbus.DBus.publish_object')
+    @patch('pyanaconda.modules.payload.payload.conf')
+    def pick_live_image_default_handler_test(self, conf, publisher):
+        """Test that live image handler is set correctly based on the configuration value."""
+        conf.payload.default_handler = PayloadHandlerType.LIVE_IMAGE
+
+        # invoke default payload creation
+        self.payload_interface.ReadKickstart("")
+        self.assertIsInstance(self.payload_module.payload_handler, LiveImageHandlerModule)
+        self.assertEqual(self.payload_interface.GetActiveHandlerPath(),
+                         LIVE_IMAGE_HANDLER.object_path)
+        publisher.assert_called_once()
+
+    @patch('pyanaconda.modules.payload.payload.conf')
+    def failed_to_pick_default_handler_test(self, conf):
+        """Test that default payload handler can't be recognized -- shouldn't happen."""
+        conf.payload.default_handler = ""
+
+        with self.assertRaises(HandlerNotSetError):
+            # invoke default payload creation
+            self.payload_interface.ReadKickstart("")
 
     @patch('pyanaconda.dbus.DBus.publish_object')
     def create_dnf_handler_test(self, publisher):
