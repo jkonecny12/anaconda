@@ -18,6 +18,8 @@
 # Red Hat, Inc.
 #
 from pyanaconda.dbus import DBus
+from pyanaconda.core.configuration.anaconda import conf
+from pyanaconda.core.configuration.payload import PayloadHandlerType
 from pyanaconda.modules.common.base import KickstartModule
 from pyanaconda.modules.common.constants.services import PAYLOAD
 from pyanaconda.modules.common.errors.payload import HandlerNotSetError
@@ -89,7 +91,22 @@ class PayloadModule(KickstartModule):
         if data.liveimg.seen:
             return LiveImageHandlerModule
         else:
+            return self._get_default_handler_class()
+
+    @staticmethod
+    def _get_default_handler_class():
+        default_handler = conf.payload.default_handler
+
+        if default_handler == PayloadHandlerType.DNF:
             return DNFHandlerModule
+        elif default_handler == PayloadHandlerType.LIVE_OS:
+            return LiveOSHandlerModule
+        elif default_handler == PayloadHandlerType.LIVE_IMAGE:
+            return LiveImageHandlerModule
+        else:
+            # This should not happen but in this case fall back to DNF handler
+            log.error("The default handler was not recognized from configuration")
+            raise HandlerNotSetError("The default handler was not recognized!")
 
     def _initialize_handler(self, handler_class):
         handler = handler_class()
