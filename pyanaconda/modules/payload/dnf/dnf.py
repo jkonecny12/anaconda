@@ -19,6 +19,7 @@
 #
 from pyanaconda.dbus import DBus
 from pyanaconda.modules.common.constants.objects import PAYLOAD_DEFAULT
+from pyanaconda.modules.payload.constants import HandlerType
 from pyanaconda.modules.payload.handler_base import PayloadHandlerBase
 from pyanaconda.modules.payload.dnf.dnf_interface import DNFHandlerInterface
 from pyanaconda.modules.payload.dnf.packages.packages import PackagesHandlerModule
@@ -51,3 +52,7 @@ class DNFHandlerModule(PayloadHandlerBase):
     def get_handler_path(self):
         """Get path of this payload handler."""
         return PAYLOAD_DEFAULT.object_path
+
+    def get_handler_type(self):
+        """Get type of this handler."""
+        return HandlerType.DNF

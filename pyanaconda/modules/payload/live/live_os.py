@@ -26,6 +26,7 @@ from pyanaconda.core.signal import Signal
 from pyanaconda.core.constants import INSTALL_TREE
 
 from pyanaconda.modules.common.constants.objects import LIVE_OS_HANDLER
+from pyanaconda.modules.payload.constants import HandlerType
 from pyanaconda.modules.payload.handler_base import PayloadHandlerBase
 from pyanaconda.modules.payload.live.live_os_interface import LiveOSHandlerInterface
 from pyanaconda.modules.payload.live.initialization import SetupInstallationSourceTask, \
@@ -57,6 +58,10 @@ class LiveOSHandlerModule(PayloadHandlerBase):
     def get_handler_path(self):
         """Get path of this payload handle."""
         return LIVE_OS_HANDLER.object_path
+
+    def get_handler_type(self):
+        """Get type of this handler."""
+        return HandlerType.LIVE_OS
 
     @property
     def image_path(self):

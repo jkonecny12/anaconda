@@ -1,5 +1,5 @@
 #
-# Base object of all payload handlers.
+# Private constants for the payload module.
 #
 # Copyright (C) 2018 Red Hat, Inc.
 #
@@ -17,32 +17,16 @@
 # License and may only be used or replicated with the express permission of
 # Red Hat, Inc.
 #
-from abc import ABCMeta, abstractmethod
+from enum import unique
 
-from pyanaconda.modules.common.base import KickstartBaseModule
+from pyanaconda.core.configuration.payload import PayloadHandlerType
 
 
-class PayloadHandlerBase(KickstartBaseModule, metaclass=ABCMeta):
-    """Base class for all the payload handler modules.
+@unique
+class HandlerType(PayloadHandlerType):
+    """Possible types of the handlers.
 
-    This will contain all API specific to payload handlers which will be called
-    by the base payload module.
+    Definition is shared with payload configuration file. The reason to have it here
+    is to hold the same conventions as other modules have.
     """
-
-    @abstractmethod
-    def get_handler_path(self):
-        """Get path of this payload handler.
-
-        :returns: path to this handler
-        :rtype: string
-        """
-        pass
-
-    @abstractmethod
-    def get_handler_type(self):
-        """Get type of this payload handler.
-
-        :returns: type of the handler as enum
-        :rtype: Enum payload.constants.HandlerType
-        """
-        pass
+    pass

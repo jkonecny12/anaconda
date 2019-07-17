@@ -29,6 +29,7 @@ from pyanaconda.payload.utils import version_cmp
 from pyanaconda.core.constants import INSTALL_TREE
 from pyanaconda.modules.common.constants.objects import LIVE_IMAGE_HANDLER
 from pyanaconda.modules.common.errors.payload import SourceSetupError
+from pyanaconda.modules.payload.constants import HandlerType
 from pyanaconda.modules.payload.handler_base import PayloadHandlerBase
 from pyanaconda.modules.payload.live.live_image_interface import LiveImageHandlerInterface
 from pyanaconda.modules.payload.live.initialization import CheckInstallationSourceImageTask, \
@@ -96,6 +97,10 @@ class LiveImageHandlerModule(PayloadHandlerBase):
     def get_handler_path(self):
         """Get path of this payload handler."""
         return LIVE_IMAGE_HANDLER.object_path
+
+    def get_handler_type(self):
+        """Get type of this handler."""
+        return HandlerType.LIVE_IMAGE
 
     @property
     def url(self):
