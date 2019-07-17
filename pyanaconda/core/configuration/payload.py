@@ -17,11 +17,29 @@
 #
 #  Author(s):  Vendula Poncova <vponcova@redhat.com>
 #
+from enum import Enum
+
 from pyanaconda.core.configuration.base import Section
+
+
+class PayloadHandlerType(Enum):
+    """Type of the payload handler."""
+    # FIXME add ostree when implemented -- here and to a specific conf files
+    DNF = "DNF"
+    LIVE_OS = "LIVE_OS"
+    LIVE_IMAGE = "LIVE_IMAGE"
 
 
 class PayloadSection(Section):
     """The Payload section."""
+
+    @property
+    def default_handler(self):
+        """Specify default payload handler.
+
+        When no payload is specified by KS data or manually this payload will be created.
+        """
+        return self._get_option("default_handler", PayloadHandlerType)
 
     @property
     def default_environment(self):
