@@ -164,7 +164,8 @@ def do_startup_x11_actions():
         xdg_data_dirs = datadir + '/window-manager:/usr/share'
 
     childproc = util.startProgram(["mutter", "--display", ":1", "--sm-disable"],
-                                  env_add={'XDG_DATA_DIRS': xdg_data_dirs})
+                                  env_add={'XDG_DATA_DIRS': xdg_data_dirs,
+                                           'XDG_SESSION_TYPE': 'x11'})
     WatchProcesses.watch_process(childproc, "mutter")
 
 
