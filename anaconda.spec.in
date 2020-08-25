@@ -259,9 +259,6 @@ options. This includes driver disks, kickstarts, and finding the anaconda
 runtime on NFS/HTTP/FTP servers or local disks.
 
 %prep
-ls -lha %{SOURCE0}
-tar -tf %{SOURCE0}
-cat %{SOURCE0}
 %autosetup -p 1
 
 %build
