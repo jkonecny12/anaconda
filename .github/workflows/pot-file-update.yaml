@@ -19,12 +19,17 @@ jobs:
         with:
           repository: jkonecny12/anaconda-l10n
           path: anaconda-l10n
-      - name: Update pot-file
+      - name: Commit new pot file
         run: |
           cp -v anaconda/po/anaconda.pot anaconda-l10n/master/
           cd anaconda-l10n
-          git config user.name github-actions
+          git config user.name InStallker
           git config user.email github-actions@github.com
           git add .
           git commit -m "update pot-file"
-          git push
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          directory: anaconda-l10n
+          github_token: ${{ secrets.INSTALLKER_TOKEN }}
+          repository: jkonecny12/anaconda-l10n
