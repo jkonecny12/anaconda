@@ -17,12 +17,15 @@
 # Red Hat, Inc.
 #
 
-from pyanaconda.core.i18n import N_
+from pyanaconda.core.i18n import _
 from pyanaconda.ui.categories import SpokeCategory
 
 __all__ = ["SystemCategory"]
 
 
 class SystemCategory(SpokeCategory):
-    sortOrder = 300
-    title = N_("SYSTEM")
+    def get_title():
+        return _("SYSTEM")
+
+    def get_sort_order():
+        return 300

@@ -17,12 +17,16 @@
 # Red Hat, Inc.
 #
 
-from pyanaconda.core.i18n import N_
+from pyanaconda.core.i18n import _
 from pyanaconda.ui.categories import SpokeCategory
 
 __all__ = ["CustomizationCategory"]
 
 
 class CustomizationCategory(SpokeCategory):
-    sortOrder = 100
-    title = N_("CUSTOMIZATION")
+
+    def get_title():
+        return _("CUSTOMIZATION")
+
+    def get_sort_order():
+        return 100

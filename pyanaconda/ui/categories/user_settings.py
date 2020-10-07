@@ -17,12 +17,16 @@
 # Red Hat, Inc.
 #
 
-from pyanaconda.core.i18n import N_
+from pyanaconda.core.i18n import _
 from pyanaconda.ui.categories import SpokeCategory
 
 __all__ = ["UserSettingsCategory"]
 
 
 class UserSettingsCategory(SpokeCategory):
-    sortOrder = 400
-    title = N_("USER SETTINGS")
+
+    def get_title():
+        return _("USER SETTINGS")
+
+    def get_sort_order():
+        return 400
