@@ -7,8 +7,15 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v2
 
-      # FIXME: this should only be done if a PR touches dockerfile/anaconda-ci, otherwise take the current one from registry
+      - name: Check if container changed in this PR
+        id: check-dockerfile-changed
+        run: |
+          git diff --name-only $GITHUB_BASE_REF $GITHUB_HEAD_REF | grep -q dockerfile/anaconda-ci/ || exit 1
+        continue-on-error: true
+
+      # build container if files for dockerfile changed in the PR
       - name: Build anaconda-ci container
+        if: ${{ steps.check-dockefile-changed.outcome == 'success' }}
         run: CONTAINER_ENGINE=docker make -f Makefile.am anaconda-ci-build
 
       - name: Run tests in anaconda-ci container
