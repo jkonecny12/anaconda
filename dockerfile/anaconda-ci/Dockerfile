@@ -14,6 +14,7 @@ RUN dnf update -y && \
   cppcheck \
   libicu \
   lttng-ust \
+  vim \
   rpm-ostree \
   pykickstart \
   python3-pip \
