@@ -369,6 +369,12 @@ desktop-file-install --dir=%{buildroot}%{_datadir}/applications %{buildroot}%{_d
 %{_prefix}/libexec/anaconda/dd_*
 
 %changelog
+* Mon Oct 26 2020  <> - 34.11-1
+- WIP (jkonecny)
+- Move UI test to a directory (vslavik)
+- Move Storage module tests to directories (vslavik)
+- Move Localization module tests to directory (vslavik)
+
 * Fri Oct 23 2020 Martin Kolman <mkolman@redhat.com> - 34.10-1
 - Move the code for the kernel package selection to new functions (vponcova)
 - Remove the support for PAE (vponcova)
