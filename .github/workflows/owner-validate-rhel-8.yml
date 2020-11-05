@@ -1,6 +1,6 @@
 # Run rhel-8 unit tests in a PR triggered by a "/test [...]" comment from an organization member.
 # This avoids running untrusted and unreviewed code on self-hosted runners.
-name: unit-tests-rhel-8
+name: owner-unit-tests-rhel-8
 on: [pull_request_target]
 
 jobs:
