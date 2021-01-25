@@ -14,6 +14,7 @@ Source0: %{name}-%{version}.tar.bz2
 
 # Versions of required components (done so we make sure the buildrequires
 # match the requires versions of things).
+%define test test
 
 %if ! 0%{?rhel}
 %define blivetguiver 2.1.12-1
