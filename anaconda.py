@@ -184,7 +184,7 @@ def parse_arguments(argv=None, boot_cmdline=None):
     ap = getArgumentParser(get_anaconda_version_string(), boot_cmdline)
 
     namespace = ap.parse_args(argv, boot_cmdline=boot_cmdline)
-    return (namespace, ap.deprecated_bootargs)
+    return (namespace, ap.removed_no_inst_bootargs)
 
 def setup_python_path():
     """Add items Anaconda needs to sys.path."""
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     # do this early so we can set flags before initializing logging
     from pyanaconda.flags import flags
     from pyanaconda.core.kernel import kernel_arguments
-    (opts, depr) = parse_arguments(boot_cmdline=kernel_arguments)
+    (opts, removed_no_inst_args) = parse_arguments(boot_cmdline=kernel_arguments)
 
     from pyanaconda.core.configuration.anaconda import conf
     conf.set_from_opts(opts)
@@ -304,9 +304,8 @@ if __name__ == "__main__":
         log.info("Using updates in /tmp/updates/ from %s", opts.updateSrc)
 
     # warn users that they should use inst. prefix all the time
-    for arg in depr:
-        stdout_log.warning("Boot argument '%s' is deprecated and will be removed in the future. "
-                           "Please use 'inst.%s' instead.",
+    for arg in removed_no_inst_args:
+        stdout_log.warning("Boot argument '%s' was removed. Please use 'inst.%s' instead.",
                            arg, arg)
 
     from pyanaconda import isys
