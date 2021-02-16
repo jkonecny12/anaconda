@@ -42,25 +42,36 @@ jobs:
       base_ref: ${{ fromJson(steps.pr_api.outputs.data).base.ref }}
       sha: ${{ fromJson(steps.pr_api.outputs.data).head.sha }}
 
-  unit-tests-master:
+  unit-tests-fedora:
     needs: pr-info
-    if: needs.pr-info.outputs.base_ref == 'master' && needs.pr-info.outputs.allowed_user == 'true'
+    # Run test if user is allowed and the target branch is in the list of supported branches in matrix
+    if: needs.pr-info.outputs.allowed_user == 'true' && contains(matrix.run-for-branch, needs.pr-info.outputs.base_ref)
     runs-on: ubuntu-20.04
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        # empty = release that corresponds to current branch name
-        release: ['', 'eln']
+        release: ['master', 'eln', 'f34-devel', 'f34-release']
         include:
+          - release: master
+            run-for-branch: ['master', 'f34-devel', 'f34-release']
           - release: eln
             name-postfix: ' (eln)'
             build-args: '--build-arg=image=quay.io/fedoraci/fedora:eln-x86_64'
+            run-for-branch: ['master', 'f34-devel', 'f34-release']
+          - release: f34-devel
+            name-postfix: ' (f34-devel)'
+            # specify that this release shouldn't be started for master branch
+            run-for-branch: ['f34-devel', 'f34-release']
+          - release: f34-release
+            name-postfix: ' (f34-release)'
+            # specify that this release shouldn't be started for master branch
+            run-for-branch: ['f34-devel', 'f34-release']
     env:
       CI_TAG: '${{ matrix.release }}'
       CONTAINER_BUILD_ARGS: '${{ matrix.build-args }}'
       STATUS_NAME: 'unit-tests${{ matrix.name-postfix }}'
-      TARGET_BRANCH_NAME: origin/master
+      TARGET_BRANCH_NAME: 'origin/${{ needs.pr-info.outputs.base_ref }}'
 
     steps:
       # we post statuses manually as this does not run from a pull_request event
@@ -126,25 +137,35 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  rpm-tests-master:
+  rpm-tests-fedora:
     needs: pr-info
-    if: needs.pr-info.outputs.base_ref == 'master' && needs.pr-info.outputs.allowed_user == 'true'
+    if: needs.pr-info.outputs.allowed_user == 'true' && contains(matrix.run-for-branch, needs.pr-info.outputs.base_ref)
     runs-on: ubuntu-20.04
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        # empty = release that corresponds to current branch name
-        release: ['', 'eln']
+        release: ['master', 'eln', 'f34-devel', 'f34-release']
         include:
+          - release: master
+            run-for-branch: ['master', 'f34-devel', 'f34-release']
           - release: eln
             name-postfix: ' (eln)'
             build-args: '--build-arg=image=quay.io/fedoraci/fedora:eln-x86_64'
+            run-for-branch: ['master', 'f34-devel', 'f34-release']
+          - release: f34-devel
+            name-postfix: ' (f34-devel)'
+            # specify that this release shouldn't be started for master branch
+            run-for-branch: ['f34-devel', 'f34-release']
+          - release: f34-release
+            name-postfix: ' (f34-release)'
+            # specify that this release shouldn't be started for master branch
+            run-for-branch: ['f34-devel', 'f34-release']
     env:
       CI_TAG: '${{ matrix.release }}'
       CONTAINER_BUILD_ARGS: '${{ matrix.build-args }}'
       STATUS_NAME: 'rpm-tests${{ matrix.name-postfix }}'
-      TARGET_BRANCH_NAME: origin/master
+      TARGET_BRANCH_NAME: 'origin/${{ needs.pr-info.outputs.base_ref }}'
 
     steps:
       - name: Create in-progress status
