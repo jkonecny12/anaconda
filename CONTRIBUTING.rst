@@ -1,7 +1,7 @@
 Contribution guidelines
 =======================
 
-You shall not pass.
+You shall not pass. Unless you can divide by zero.
 
 This guide describes rules for how to get your contributions into Anaconda. However, if you seek
 help with implementing changes in Anaconda, please follow our
