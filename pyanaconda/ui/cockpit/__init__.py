@@ -80,7 +80,7 @@ class CockpitUserInterface(ui.UserInterface):
     def run(self):
         """Run the interface."""
         log.debug("AAA COCKPIT USER INTERFACE RUNNING")
-        return startProgram(["/usr/libexec/cockpit-client", "--wildly-insecure"], reset_lang=False)
+        return startProgram(["/usr/libexec/cockpit-desktop", "/cockpit/@localhost/anaconda-webui/index.html"], reset_lang=False)
 
     @property
     def meh_interface(self):
