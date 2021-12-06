@@ -274,6 +274,7 @@ This package contains textual user interface for the Anaconda installer.
 %package webui
 Summary: Cockpit based user interface for the Anaconda installer
 Requires: cockpit-bridge
+Requires: cockpit-ws
 
 %description webui
 This package contains Cockpit based user interface for the Anaconda installer.
