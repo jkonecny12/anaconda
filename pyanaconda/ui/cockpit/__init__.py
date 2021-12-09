@@ -16,6 +16,9 @@
 # License and may only be used or replicated with the express permission of
 # Red Hat, Inc.
 #
+
+import time
+
 from pyanaconda import ui
 from pyanaconda.core.constants import QUIT_MESSAGE
 from pyanaconda.core.util import startProgram
@@ -72,7 +75,17 @@ class CockpitUserInterface(ui.UserInterface):
 
     def run(self):
         """Run the interface."""
-        return startProgram(["/usr/libexec/cockpit-desktop", "/cockpit/@localhost/anaconda-webui/index.html"], reset_lang=False)
+        log.debug("web-ui: starting cockpit web view")
+        startProgram(["/usr/libexec/cockpit-desktop", "/cockpit/@localhost/anaconda-webui/index.html"], reset_lang=False)
+        log.debug("cockpit web view has been started")
+        # at the moment all the other components expect the UI run() method to be
+        # blocking, so make sure this is the case for the Web UI as well
+        # FIXME: make it possible to stop blocking once Web UI supports shutdown
+        log.debug("web-ui: cockpit web view has been started")
+        log.debug("web-ui: blocking the run() method")
+        time.sleep(100000000)
+        log.debug("web-ui: blocking the run() method - done")
+        return
 
     @property
     def meh_interface(self):
