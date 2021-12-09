@@ -17,16 +17,9 @@
 # Red Hat, Inc.
 #
 from pyanaconda import ui
-from pyanaconda.core.constants import IPMI_ABORTED, QUIT_MESSAGE
-from pyanaconda.flags import flags
-from pyanaconda.threading import threadMgr
-from pyanaconda.core.util import ipmi_report, startProgram
+from pyanaconda.core.constants import QUIT_MESSAGE
+from pyanaconda.core.util import startProgram
 
-import os
-import sys
-import site
-import queue
-import meh.ui.text
 from pyanaconda.anaconda_loggers import get_module_logger
 log = get_module_logger(__name__)
 
@@ -79,7 +72,6 @@ class CockpitUserInterface(ui.UserInterface):
 
     def run(self):
         """Run the interface."""
-        log.debug("AAA COCKPIT USER INTERFACE RUNNING")
         return startProgram(["/usr/libexec/cockpit-desktop", "/cockpit/@localhost/anaconda-webui/index.html"], reset_lang=False)
 
     @property
@@ -87,10 +79,19 @@ class CockpitUserInterface(ui.UserInterface):
         # FIXME: actually implement this
         return True
 
-
     @property
     def tty_num(self):
         # FIXME: actually implement this
         return 6
 
+    def showError(self, message):
+        # FIXME: actually implement this
+        return True
 
+    def showDetailedError(self, message, details, buttons=None):
+        # FIXME: actually implement this
+        return True
+
+    def showYesNoQuestion(self, message):
+        # FIXME: actually implement this
+        return True
