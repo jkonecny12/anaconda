@@ -22,6 +22,11 @@ ARG git_branch
 #   @rhinstaller/Anaconda
 #   @rhinstaller/Anaconda-devel
 ARG copr_repo
+
+# The `base_repo` arg will set Anaconda repository which is used to download spec file.
+# default value: rhinstaller/anaconda
+# possible value: my-fork/anaconda
+ARG base_repo
 LABEL maintainer=anaconda-devel@lists.fedoraproject.org
 
 # On ELN, BaseOS+AppStream don't have all our build dependencies; this provides the "Everything" compose
@@ -58,7 +63,7 @@ RUN set -ex; \
   else \
     dnf copr enable -y ${copr_repo} fedora-eln-x86_64; \
   fi; \
-  curl -L https://raw.githubusercontent.com/rhinstaller/anaconda/${git_branch}/anaconda.spec.in | sed 's/@PACKAGE_VERSION@/0/; s/@PACKAGE_RELEASE@/0/; s/%{__python3}/python3/' > /tmp/anaconda.spec; \
+  curl -L https://raw.githubusercontent.com/${base_repo}/${git_branch}/anaconda.spec.in | sed 's/@PACKAGE_VERSION@/0/; s/@PACKAGE_RELEASE@/0/; s/%{__python3}/python3/' > /tmp/anaconda.spec; \
   rpmspec -q --buildrequires /tmp/anaconda.spec | xargs -d '\n' dnf install -y; \
   rpmspec -q --requires /tmp/anaconda.spec | grep -v anaconda | xargs -d '\n' dnf install -y; \
   dnf clean all

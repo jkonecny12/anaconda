@@ -18,6 +18,8 @@
 # Store a branch specific configuration here to avoid dealing with
 # conflicts on multiple places.
 
+# GitHub repository link
+GIT_REPO ?=  M4rtinK/anaconda
 
 # Name of the expected current git branch.
 # This could be master, fXX-devel, fXX-release, rhelX-branch, rhel-X ...
