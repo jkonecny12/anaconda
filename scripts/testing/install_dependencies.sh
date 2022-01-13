@@ -28,7 +28,7 @@
 
 set -eu
 
-dnf install $@ rpm-build /usr/bin/xargs
+dnf install $@ make rpm-build /usr/bin/xargs npm libvirt virt-install
 
 TEMP=$(mktemp /tmp/anaconda.spec.XXXXXXX)
 
