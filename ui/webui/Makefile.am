@@ -87,5 +87,25 @@ test/common:
 
 $(NODE_MODULES_TEST): package.json
 	rm -f package-lock.json #  if it exists already, npm install won't update it; force that so that we always get up-to-date packages
-	env -u NODE_ENV npm install #  unset NODE_ENV, skips devDependencies otherwise
+# unset NODE_ENV for npm install call to avoid skiping of devDependencies
+# this below is an ugly and awful workaround for "npm ERR! code ERR_SOCKET_TIMEOUT" error which showed up in 50% of calls
+# TODO: find out proper fix instead of this workaround
+	TMPFILE="./npm-install.log"; \
+	COUNTER=1; \
+	while true; do \
+		rm -f $$TMPFILE; \
+		env -u NODE_ENV npm install 2>&1 | tee $$TMPFILE; \
+		if [ "$$COUNTER" -eq 6 ]; then \
+			echo "npm download was not successful after $$(expr $$COUNTER - 1) retries!"; \
+			rm -f $$TMPFILE; \
+			exit 1; \
+		fi; \
+		if grep -q "npm ERR! code ERR_SOCKET_TIMEOUT" $$TMPFILE; then \
+			echo "$$COUNTER retry of npm download"; \
+			((COUNTER++)); \
+			continue; \
+		fi; \
+	break; \
+	done; \
+	rm -f $$TMPFILE
 	env -u NODE_ENV npm prune
