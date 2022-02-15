@@ -19,6 +19,7 @@
 #
 from enum import Enum
 from pyanaconda.core.configuration.base import Section
+# from pyanaconda.core.util import get_os_release_value
 
 
 class SystemType(Enum):
@@ -62,6 +63,11 @@ class SystemSection(Section):
     def _is_unknown(self):
         """Are we running in the unknown OS?"""
         return self._type is SystemType.UNKNOWN
+
+    @property
+    def _is_wayland(self):
+        # TODO: use xisxwayland (https://gitlab.freedesktop.org/xorg/app/xisxwayland/-/tree/master)
+        return True
 
     @property
     def can_reboot(self):
@@ -125,7 +131,7 @@ class SystemSection(Section):
     @property
     def can_configure_keyboard(self):
         """Can we configure the keyboard?"""
-        return self._is_boot_iso or self._is_live_os or self._is_booted_os
+        return (not self._is_wayland) and (self._is_boot_iso or self._is_live_os or self._is_booted_os)
 
     @property
     def can_modify_syslog(self):
