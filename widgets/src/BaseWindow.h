@@ -76,6 +76,7 @@ void        anaconda_base_window_set_error   (AnacondaBaseWindow *win, const cha
 void        anaconda_base_window_set_info    (AnacondaBaseWindow *win, const char *msg);
 void        anaconda_base_window_set_warning (AnacondaBaseWindow *win, const char *msg);
 void        anaconda_base_window_clear_info  (AnacondaBaseWindow *win);
+void        anaconda_base_window_switch_layout_control_component (AnacondaBaseWindow *win);
 
 GtkWidget  *anaconda_base_window_get_action_area   (AnacondaBaseWindow *win);
 GtkWidget  *anaconda_base_window_get_alignment     (AnacondaBaseWindow *win);

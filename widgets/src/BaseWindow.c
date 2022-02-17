@@ -149,6 +149,7 @@ enum {
 #define DEFAULT_BETA          N_("PRE-RELEASE / TESTING")
 #define LAYOUT_INDICATOR_LABEL_WIDTH 10
 #define HELP_BUTTON_LABEL N_("Help!")
+#define SYSTEM_KEYBOARD_SETTINGS_BUTTON_LABEL N_("Open System Keyboard Configuration")
 
 struct _AnacondaBaseWindowPrivate {
     gboolean    is_beta;
@@ -159,6 +160,7 @@ struct _AnacondaBaseWindowPrivate {
     GtkWidget  *name_label, *distro_label, *beta_label;
     GtkWidget  *layout_indicator;
     GtkWidget  *help_button;
+    GtkWidget  *system_keyboard_config_button;
 
     /* Untranslated versions of various things. */
     gchar *orig_name, *orig_distro, *orig_beta;
@@ -393,6 +395,15 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     gtk_widget_set_margin_top(win->priv->layout_indicator, 6);
     gtk_widget_set_margin_bottom(win->priv->layout_indicator, 6);
 
+    /* Create a system keyboard configuration in case it's needed. */
+    /* This configuration will not be used by default but can be enabled later. */
+    win->priv->system_keyboard_config_button = gtk_button_new_with_label(_(SYSTEM_KEYBOARD_SETTINGS_BUTTON_LABEL));
+    gtk_widget_set_name(win->priv->system_keyboard_config_button, "system-keyboard-config");
+    gtk_widget_set_halign(win->priv->system_keyboard_config_button, GTK_ALIGN_START);
+    gtk_widget_set_hexpand(win->priv->system_keyboard_config_button, FALSE);
+    gtk_widget_set_margin_top(win->priv->system_keyboard_config_button, 6);
+    gtk_widget_set_margin_bottom(win->priv->system_keyboard_config_button, 6);
+
     /* Create the help button. */
     win->priv->help_button = gtk_button_new_with_label(_(HELP_BUTTON_LABEL));
     gtk_widget_set_halign(win->priv->help_button, GTK_ALIGN_END);
@@ -555,6 +566,27 @@ GtkWidget *anaconda_base_window_get_nav_area(AnacondaBaseWindow *win) {
  */
 GtkWidget *anaconda_base_window_get_help_button(AnacondaBaseWindow *win) {
     return win->priv->help_button;
+}
+
+
+/**
+ * anaconda_base_window_switch_layout_control_component:
+ * @win: a #AnacondaBaseWindow
+ *
+ * Switch the default LayoutIndicator to Button which will open the system configuration.
+ *
+ * Since: 3.4
+ */
+void anaconda_base_window_switch_layout_control_component(AnacondaBaseWindow *win) {
+    // hide the layout indicator first
+    gtk_widget_set_no_show_all(GTK_WIDGET(win->priv->layout_indicator), TRUE);
+    gtk_widget_hide(GTK_WIDGET(win->priv->layout_indicator));
+    gtk_widget_set_sensitive(GTK_WIDGET(win->priv->layout_indicator), FALSE);
+
+    // replace layout indicator with a button
+    gtk_grid_attach(GTK_GRID(win->priv->nav_area),
+                    win->priv->system_keyboard_config_button,
+                    1, 2, 1, 1);
 }
 
 /**
