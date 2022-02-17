@@ -44,7 +44,7 @@ from pyanaconda.core.glib import Bytes, GError
 from pyanaconda.ui import UserInterface, common
 from pyanaconda.ui.gui.utils import unbusyCursor
 from pyanaconda.core.async_utils import async_action_wait
-from pyanaconda.ui.gui.utils import watch_children, unwatch_children
+from pyanaconda.ui.gui.utils import watch_children, unwatch_children, really_hide
 from pyanaconda.ui.gui.helpers import autoinstall_stopped
 from pyanaconda.ui.lib.help import show_graphical_help_for_screen
 import os.path
@@ -158,6 +158,13 @@ class GUIObject(common.UIObject):
             self.builder.add_from_file(self._findUIFile())
 
         self.builder.connect_signals(self)
+
+        # Hide keyboard indicator if we can't configure the keyboard
+        # It doesn't really give you any benefit of seeing something which could
+        # give you wrong values.
+        if (not conf.system.can_configure_keyboard) and \
+           isinstance(self.window, AnacondaWidgets.BaseWindow):
+            self.window.switch_layout_control_component()
 
     def _findUIFile(self):
         path = os.environ.get("UIPATH", "./:/usr/share/anaconda/ui/")
