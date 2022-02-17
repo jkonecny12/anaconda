@@ -568,6 +568,20 @@ GtkWidget *anaconda_base_window_get_help_button(AnacondaBaseWindow *win) {
     return win->priv->help_button;
 }
 
+/**
+ * anaconda_base_window_get_layout_indicator_box:
+ * @win: a #AnacondaBaseWindow
+ *
+ * Returns the AnacondaLayoutIndicator.
+ *
+ * Returns: (transfer none): the layout indicator box
+ *
+ * Since: 3.4
+ */
+GtkWidget *anaconda_base_window_get_layout_indicator_box(AnacondaBaseWindow *win) {
+    return win->priv->layout_indicator;
+}
+
 
 /**
  * anaconda_base_window_switch_layout_control_component:

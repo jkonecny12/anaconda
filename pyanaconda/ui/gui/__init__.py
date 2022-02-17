@@ -164,7 +164,10 @@ class GUIObject(common.UIObject):
         # give you wrong values.
         if (not conf.system.can_configure_keyboard) and \
            isinstance(self.window, AnacondaWidgets.BaseWindow):
-            self.window.switch_layout_control_component()
+            layout_indicator = self.window.get_layout_indicator_box()
+            really_hide(layout_indicator)
+            layout_indicator.set_sensitive(False)
+            # self.window.switch_layout_control_component()
 
     def _findUIFile(self):
         path = os.environ.get("UIPATH", "./:/usr/share/anaconda/ui/")
