@@ -115,7 +115,7 @@ class Hub(GUIObject, common.Hub):
         import gi
 
         gi.require_version("Gtk", "3.0")
-        gi.require_version("AnacondaWidgets", "3.4")
+        gi.require_version("AnacondaWidgets", "3.5")
 
         from gi.repository import Gtk, AnacondaWidgets
 
