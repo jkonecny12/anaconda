@@ -464,6 +464,8 @@ rm -rf \
 %{_prefix}/libexec/anaconda/dd_*
 
 %changelog
+* Tue Nov 22 2022 github-actions <github-actions@github.com> - 38.9-1
+
 * Tue Nov 08 2022 Vladimír Slávik <vslavik@redhat.com> - 38.8-1
 - Web UI: Update language selection screen (ozobal)
 - There are no installation targets if bootloader devices are not set
