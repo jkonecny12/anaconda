@@ -464,6 +464,8 @@ rm -rf \
 %{_prefix}/libexec/anaconda/dd_*
 
 %changelog
+* Tue Nov 29 2022 github-actions <github-actions@github.com> - 38.10-1
+
 * Tue Nov 22 2022 github-actions <github-actions@github.com> - 38.9-1
 
 * Tue Nov 08 2022 Vladimír Slávik <vslavik@redhat.com> - 38.8-1
