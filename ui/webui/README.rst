@@ -40,3 +40,4 @@ as described in `<test/README.rst>`_.
 Then you can run::
 
     make rsync
+a
