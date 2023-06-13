@@ -78,3 +78,4 @@ RUN pip install --no-cache-dir --upgrade pip; \
 RUN mkdir /anaconda
 
 WORKDIR /anaconda
+a
