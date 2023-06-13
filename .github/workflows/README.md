@@ -22,3 +22,4 @@ When editing a template, the following roughly describes what to expect:
 
 - Whitespace handling is a complicated affair. YAML wants it precise, while Jinja is messy.
   If you stick to the two methods above, everything stays mostly deterministic.
+a
