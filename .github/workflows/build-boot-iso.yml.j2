@@ -8,6 +8,12 @@ on:
     types: [created]
   # be able to start this action manually from a actions tab when needed
   workflow_dispatch:
+    input:
+      webuiISO:
+        description: 'Build the web UI ISO image'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -52,10 +58,19 @@ jobs:
         env:
           BODY: ${{ github.event.comment.body }}
         run: |
+          set -eux
+
+          if [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
+          # run through the workflow dispatch look on the user input
+            if [ ${{ inputs.webuiISO }} == "True" ]; then
+              echo "args=--webui" >> $GITHUB_OUTPUT
+            fi
+          else
           # extract first line and cut out the "/boot-iso" first word
-          ARGS=$(echo "$BODY" | sed -n '1 s/^[^ ]* *//p' | sed 's/[[:space:]]*$//')
-          echo "arguments are: $ARGS"
-          echo "args=${ARGS}" >> $GITHUB_OUTPUT
+            ARGS=$(echo "$BODY" | sed -n '1 s/^[^ ]* *//p' | sed 's/[[:space:]]*$//')
+            echo "arguments are: $ARGS"
+            echo "args=${ARGS}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set outputs
         id: set_outputs
