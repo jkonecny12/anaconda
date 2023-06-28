@@ -109,6 +109,7 @@ jobs:
       # we post statuses manually as this does not run from a pull_request event
       # https://developer.github.com/v3/repos/statuses/#create-a-status
       - name: Create in-progress status
+        if: github.event_name != 'workflow_dispatch'
         uses: octokit/request-action@v2.x
         with:
           route: 'POST /repos/${{ github.repository }}/statuses/${{ needs.pr-info.outputs.sha }}'
@@ -166,7 +167,7 @@ jobs:
             result/iso/boot.iso
 
       - name: Set result status
-        if: always()
+        if: {{ always() && github.event_name != 'workflow_dispatch' }}
         uses: octokit/request-action@v2.x
         with:
           route: 'POST /repos/${{ github.repository }}/statuses/${{ needs.pr-info.outputs.sha }}'
