@@ -17,6 +17,7 @@
 # Red Hat, Inc.
 #
 
+import os
 from unittest import TestCase
 from unittest.mock import patch, Mock
 from pyanaconda.core.live_user import get_live_user, User
@@ -25,16 +26,17 @@ from pyanaconda.core.live_user import get_live_user, User
 class GetLiveUserTests(TestCase):
 
     @patch("pyanaconda.core.live_user.conf")
-    @patch("pyanaconda.core.live_user.getpwnam")
-    def test_get_live_user(self, getpwnam_mock, conf_mock):
+    @patch("pyanaconda.core.live_user.getpwuid")
+    def test_get_live_user(self, getpwuid_mock, conf_mock):
         # not live = early exit
         conf_mock.system.provides_liveuser = False
         assert get_live_user() is None
-        getpwnam_mock.assert_not_called()
+        getpwuid_mock.assert_not_called()
 
         # live and has user
         conf_mock.system.provides_liveuser = True
-        getpwnam_mock.return_value = Mock(pw_uid=1024)
+        os.environ['PKEXEC_UID']='1024'
+        getpwuid_mock.return_value = Mock(pw_uid=1024, pw_dir='/home/liveuser', pw_name='liveuser')
         assert get_live_user() == User(name="liveuser",
                                        uid=1024,
                                        env_prune=("GDK_BACKEND",),
@@ -43,10 +45,10 @@ class GetLiveUserTests(TestCase):
                                            "USER": "liveuser",
                                            "HOME": "/home/liveuser",
                                        })
-        getpwnam_mock.assert_called_once_with("liveuser")
-        getpwnam_mock.reset_mock()
+        getpwuid_mock.assert_called_once_with("liveuser")
+        getpwuid_mock.reset_mock()
 
         # supposedly live but missing user
-        getpwnam_mock.side_effect = KeyError
+        getpwuid_mock.side_effect = KeyError
         assert get_live_user() is None
-        getpwnam_mock.assert_called_once_with("liveuser")
+        getpwuid_mock.assert_called_once_with(1024)

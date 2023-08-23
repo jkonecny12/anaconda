@@ -19,8 +19,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
 from collections import namedtuple
-from pwd import getpwnam
+from pwd import getpwuid
 
 from pyanaconda.core.configuration.anaconda import conf
 
@@ -38,13 +39,17 @@ def get_live_user():
         return None
 
     try:
-        username = "liveuser"
-        uid = getpwnam(username).pw_uid
+        if "PKEXEC_UID" not in os.environ:
+            return None
+        uid = int(os.environ.get("PKEXEC_UID"))
+        passwd_entry = getpwuid(uid)
+        username = passwd_entry.pw_name
+        home_dir = passwd_entry.pw_dir
         env_prune = ("GDK_BACKEND",)
         env_add = {
             "XDG_RUNTIME_DIR": "/run/user/{}".format(uid),
             "USER": username,
-            "HOME": "/home/{}".format(username),
+            "HOME": home_dir,
         }
         return User(name=username,
                     uid=uid,
