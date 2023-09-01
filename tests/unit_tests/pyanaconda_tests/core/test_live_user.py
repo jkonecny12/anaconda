@@ -17,38 +17,75 @@
 # Red Hat, Inc.
 #
 
-import os
-from unittest import TestCase
-from unittest.mock import patch, Mock
+import pytest
+
+from unittest.mock import Mock
+from pyanaconda.core import live_user
 from pyanaconda.core.live_user import get_live_user, User
 
 
-class GetLiveUserTests(TestCase):
+### FIXTURES ###
 
-    @patch("pyanaconda.core.live_user.conf")
-    @patch("pyanaconda.core.live_user.getpwuid")
-    def test_get_live_user(self, getpwuid_mock, conf_mock):
-        # not live = early exit
-        conf_mock.system.provides_liveuser = False
-        assert get_live_user() is None
-        getpwuid_mock.assert_not_called()
+@pytest.fixture
+def mocked_system_conf(monkeypatch):
+    mocked_conf = Mock()
+    mocked_system = Mock()
+    mocked_conf.system = mocked_system
 
-        # live and has user
-        conf_mock.system.provides_liveuser = True
-        os.environ['PKEXEC_UID']='1024'
-        getpwuid_mock.return_value = Mock(pw_uid=1024, pw_dir='/home/liveuser', pw_name='liveuser')
-        assert get_live_user() == User(name="liveuser",
-                                       uid=1024,
-                                       env_prune=("GDK_BACKEND",),
-                                       env_add={
-                                           "XDG_RUNTIME_DIR": "/run/user/1024",
-                                           "USER": "liveuser",
-                                           "HOME": "/home/liveuser",
-                                       })
-        getpwuid_mock.assert_called_once_with("liveuser")
-        getpwuid_mock.reset_mock()
+    monkeypatch.setattr(live_user, "conf", mocked_conf)
 
-        # supposedly live but missing user
-        getpwuid_mock.side_effect = KeyError
-        assert get_live_user() is None
-        getpwuid_mock.assert_called_once_with(1024)
+    return mocked_system
+
+
+@pytest.fixture
+def prepare_mocked_live_user(mocked_system_conf, monkeypatch):
+    mocked_system_conf.provides_liveuser = True
+    monkeypatch.setenv("PKEXEC_UID", "1024")
+
+
+@pytest.fixture
+def mocked_getpwuid(monkeypatch):
+    m_getpwuid = Mock()
+    monkeypatch.setattr(live_user, "getpwuid", m_getpwuid)
+
+    return m_getpwuid
+
+
+### TESTS ###
+
+
+def test_get_live_user_not_on_live(mocked_system_conf, mocked_getpwuid):
+    """Test get_live_user function not on live environment"""
+    # not live = early exit
+    mocked_system_conf.provides_liveuser = False
+    assert get_live_user() is None
+    mocked_getpwuid.assert_not_called()
+
+
+def test_get_live_user_on_live(prepare_mocked_live_user, mocked_getpwuid):
+    """Test get_live_user function"""
+    # live and has user
+    mocked_getpwuid.return_value = Mock(pw_uid=1024, pw_dir='/home/liveuser', pw_name='liveuser')
+    assert get_live_user() == User(name="liveuser",
+                                   uid=1024,
+                                   env_prune=("GDK_BACKEND",),
+                                   env_add={
+                                       "XDG_RUNTIME_DIR": "/run/user/1024",
+                                       "USER": "liveuser",
+                                       "HOME": "/home/liveuser",
+                                   })
+    mocked_getpwuid.assert_called_once_with(1024)
+
+
+def test_get_live_user_missing_PKEXEC_UID(prepare_mocked_live_user, mocked_getpwuid, monkeypatch):
+    """Test get_live_user function not running in pkexec environment"""
+    monkeypatch.delenv("PKEXEC_UID")
+    assert get_live_user() is None
+
+
+def test_get_live_user_broken_getpwuid_call(prepare_mocked_live_user, mocked_getpwuid):
+    """Test get_live_user function with missing user"""
+    # supposedly live but missing user
+    mocked_getpwuid.side_effect = KeyError
+    assert get_live_user() is None
+    mocked_getpwuid.assert_called_once_with(1024)
