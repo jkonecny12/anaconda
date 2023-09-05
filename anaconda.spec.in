@@ -393,7 +393,8 @@ rm -rf \
 %{_sbindir}/anaconda
 %{_sbindir}/handle-sshpw
 %{_datadir}/anaconda
-%{_prefix}/libexec/anaconda
+%{_libexecdir}/anaconda
+%exclude %{_libexecdir}/anaconda/webui-desktop
 %exclude %{_datadir}/anaconda/gnome
 %exclude %{_datadir}/anaconda/pixmaps
 %exclude %{_datadir}/anaconda/ui
@@ -448,7 +449,7 @@ rm -rf \
 %dir %{_datadir}/anaconda/firefox-theme/live/chrome
 %{_datadir}/anaconda/firefox-theme/live/user.js
 %{_datadir}/anaconda/firefox-theme/live/chrome/userChrome.css
-%{_libexecdir}/webui-desktop
+%{_libexecdir}/anaconda/webui-desktop
 
 %files gui
 %{python3_sitearch}/pyanaconda/ui/gui/*
