@@ -39,7 +39,6 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
-          token: ${{ secrets.INSTALLKER_TOKEN }}
 
       - name: Check if already tagged
         id: check-tag
