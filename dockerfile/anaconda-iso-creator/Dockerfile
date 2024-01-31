@@ -34,6 +34,9 @@ LABEL maintainer=anaconda-devel@lists.fedoraproject.org
 RUN set -ex; \
   dnf update -y; \
   dnf install -y \
+  'dnf-command(copr)'; \
+  dnf copr enable -y jkonecny/Lorax-fix-build; \
+  dnf install -y \
   createrepo_c \
 # required for lorax-build-webui script
   patch \
