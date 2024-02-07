@@ -48,7 +48,7 @@ mknod -m 0660 /dev/loop3 b 7 3  2> /dev/null || true
 
 #### create and serve repo from provided Anaconda RPMs ####
 mkdir -p $REPO_DIR
-cp -a $INPUT_RPMS/* $REPO_DIR || echo "RPM files can't be copied!"  # We could just do the build with official repositories only
+cp $INPUT_RPMS/* $REPO_DIR || echo "RPM files can't be copied!"  # We could just do the build with official repositories only
 createrepo_c $REPO_DIR
 pushd $REPO_DIR
 HTTP_SERVER=$(start_http_server)
