@@ -145,6 +145,7 @@ To build a Web UI in Live image run::
 The resulting ISO will be stored in ``./result/iso`` directory.
 
 Note: You can put additional RPMs to ``./result/build/01-rpm-build`` and these will be automatically used for the ISO build.
+Note 2: If you need to debug builds just connect to container by adding ``CONTAINER_ADD_ARGS="-t --entrypoint=/bin/bash"`` to the make command (example: ``make -f ./Makefile.am container-live-iso-build CONTAINER_ADD_ARGS="-t --entrypoint=/bin/bash"``)
 
 Anaconda Installer Branching Policy (the long version)
 -------------------------------------------------------
