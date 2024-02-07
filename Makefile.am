@@ -368,6 +368,8 @@ container-iso-build:
 		exit 1; \
 	fi
 
+	@echo -e "Tip: If you want to change more packages just put them into '$(srcbuild)/result/build/01-rpm-build' directory.\n\n"
+
 	mkdir -p result/iso
 	sudo $(CONTAINER_ENGINE) run \
 	--rm \
@@ -392,6 +394,8 @@ container-live-iso-build:
 		echo "You need to have anaconda RPMs build first. Please run 'make -f ./Makefile.am container-rpms-scratch' before this command."; \
 		exit 1; \
 	fi
+
+	@echo -e "Tip: If you want to change more packages just put them into '$(srcbuild)/result/build/01-rpm-build' directory.\n\n"
 
 	mkdir -p result/iso/logs
 	sudo $(CONTAINER_ENGINE) run \

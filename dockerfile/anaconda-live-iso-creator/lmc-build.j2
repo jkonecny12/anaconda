@@ -91,13 +91,9 @@ fi
 echo "Virtual machine will start with cpu:$proposed_cpu memory:${proposed_mem}MB"
 
 
-#### add webui dependencies to kickstart ####
+#### add local Anaconda build RPMs to kickstart ####
 cat >> $WORKSTATION_KS << EOF
 repo --name anaconda-local --baseurl=$HTTP_SERVER
-
-%packages
-anaconda-webui
-%end
 EOF
 
 cp $WORKSTATION_KS /images/logs/input.ks
