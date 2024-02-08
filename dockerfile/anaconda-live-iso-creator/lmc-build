@@ -46,6 +46,7 @@ stop_http_server() {
     kill -s SIGTERM "$(cat $HTTP_PID)"
 }
 
+
 # pre-create loop devices manually. In the container you can't use losetup for that.
 mknod -m 0660 /dev/loop0 b 7 0  2> /dev/null || true
 mknod -m 0660 /dev/loop1 b 7 1  2> /dev/null || true
@@ -58,6 +59,7 @@ mkdir -p $REPO_DIR
 cp $INPUT_RPMS/* $REPO_DIR || echo "RPM files can't be copied!"  # We could just do the build with official repositories only
 createrepo_c $REPO_DIR
 pushd $REPO_DIR
+trap stop_http_server EXIT INT QUIT PIPE
 HTTP_SERVER=$(start_http_server)
 popd
 
