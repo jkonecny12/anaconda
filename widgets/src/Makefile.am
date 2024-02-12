@@ -143,3 +143,5 @@ gk-kiosk.c gk-kiosk.h &:
 	--generate-c-code gk-kiosk \
 	--output-directory $(srcdir) \
 	$(srcdir)/dbus/org.gnome.Kiosk.xml
+
+LayoutIndicator.c: gk-kiosk.c gk-kiosk.h
