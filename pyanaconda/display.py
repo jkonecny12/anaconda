@@ -133,7 +133,7 @@ def ask_vnc_question(anaconda, vnc_server, message):
         if not anaconda.gui_mode:
             log.info("VNC requested via VNC question, switching Anaconda to GUI mode.")
         anaconda.display_mode = constants.DisplayModes.GUI
-        flags.usevnc = True
+        flags.use_rd = True
         vnc_server.password = vnc_data.password
 
 
@@ -246,7 +246,7 @@ def do_extra_x11_actions(runres, gui_mode):
     :param str runres: a resolution specification string
     :param gui_mode: an Anaconda display mode
     """
-    if runres and gui_mode and not flags.usevnc:
+    if runres and gui_mode and not flags.use_rd:
         set_x_resolution(runres)
 
     # Load the system-wide Xresources
@@ -296,7 +296,7 @@ def setup_display(anaconda, options):
     vnc_server.timeout = xtimeout
 
     if options.vnc:
-        flags.usevnc = True
+        flags.use_rd = True
         if not anaconda.gui_mode:
             log.info("VNC requested via boot/CLI option, switching Anaconda to GUI mode.")
             anaconda.display_mode = constants.DisplayModes.GUI
@@ -318,7 +318,7 @@ def setup_display(anaconda, options):
     vnc_data = VncData.from_structure(ui_proxy.Vnc)
 
     if vnc_data.enabled:
-        flags.usevnc = True
+        flags.use_rd = True
         if not anaconda.gui_mode:
             log.info("VNC requested via kickstart, switching Anaconda to GUI mode.")
             anaconda.display_mode = constants.DisplayModes.GUI
@@ -338,20 +338,20 @@ def setup_display(anaconda, options):
         if "pyanaconda.ui.gui" not in mods:
             stdout_log.warning("Graphical user interface not available, falling back to text mode")
             anaconda.display_mode = constants.DisplayModes.TUI
-            flags.usevnc = False
-            flags.vncquestion = False
+            flags.use_rd = False
+            flags.rd_question = False
 
     # check if VNC can be started
     vnc_can_be_started, vnc_error_messages = check_vnc_can_be_started(anaconda)
     if not vnc_can_be_started:
         # VNC can't be started - disable the VNC question and log
         # all the errors that prevented VNC from being started
-        flags.vncquestion = False
+        flags.rd_question = False
         for error_message in vnc_error_messages:
             stdout_log.warning(error_message)
 
     # Should we try to start Xorg?
-    want_x = anaconda.gui_mode and not (flags.preexisting_x11 or flags.usevnc)
+    want_x = anaconda.gui_mode and not (flags.preexisting_x11 or flags.use_rd)
 
     # Is Xorg is actually available?
     if want_x and not os.access("/usr/bin/Xorg", os.X_OK):
@@ -361,7 +361,7 @@ def setup_display(anaconda, options):
         anaconda.display_mode = constants.DisplayModes.TUI
         want_x = False
 
-    if anaconda.tui_mode and flags.vncquestion:
+    if anaconda.tui_mode and flags.rd_question:
         # we prefer vnc over text mode, so ask about that
         message = _("Text mode provides a limited set of installation "
                     "options. It does not offer custom partitioning for "
@@ -370,7 +370,7 @@ def setup_display(anaconda, options):
         ask_vnc_question(anaconda, vnc_server, message)
         if not vnc_data.enabled:
             # user has explicitly specified text mode
-            flags.vncquestion = False
+            flags.rd_question = False
 
     anaconda.log_display_mode()
     startup_utils.check_memory(anaconda, options)
@@ -406,14 +406,14 @@ def setup_display(anaconda, options):
             do_extra_x11_actions(options.runres, gui_mode=anaconda.gui_mode)
 
     if anaconda.tui_mode and anaconda.gui_startup_failed and \
-            flags.vncquestion and not vnc_data.enabled:
+            flags.rd_question and not vnc_data.enabled:
         message = _("X was unable to start on your machine. Would you like to start VNC to connect to "
                     "this computer from another computer and perform a graphical installation or continue "
                     "with a text mode installation?")
         ask_vnc_question(anaconda, vnc_server, message)
 
     # if they want us to use VNC do that now
-    if anaconda.gui_mode and flags.usevnc:
+    if anaconda.gui_mode and flags.use_rd:
         vnc_server.startServer()
         do_startup_x11_actions()
 
