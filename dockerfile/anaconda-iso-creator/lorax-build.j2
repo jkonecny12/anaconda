@@ -48,6 +48,7 @@ MINOR_VERSION=${VERSION_ID#*.}
 # FIXME: Remove COPR repository which is temporary workaround until python3-pam package is available
 lorax -p RHEL -v "$MAJOR_VERSION" -r "$MINOR_VERSION" \
       --volid "RHEL-$MAJOR_VERSION-$MINOR_VERSION-BaseOS-x86_64" \
+      --sharedir /usr/share/lorax/templates.d/80-rhel \
       --nomacboot \
       -s http://download.devel.redhat.com/rhel-{$ distro_release $}/nightly/RHEL-{$ distro_release $}-Public-Beta/latest-RHEL-{$ distro_release $}/compose/BaseOS/x86_64/os/ \
       -s http://download.devel.redhat.com/rhel-{$ distro_release $}/nightly/RHEL-{$ distro_release $}-Public-Beta/latest-RHEL-{$ distro_release $}/compose/AppStream/x86_64/os/ \
