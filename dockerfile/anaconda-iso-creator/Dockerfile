@@ -37,6 +37,7 @@ RUN set -ex; \
   createrepo_c \
 # required for lorax-build-webui script
   patch \
+  hfsplus-tools \
   lorax; \
   dnf clean all
 
