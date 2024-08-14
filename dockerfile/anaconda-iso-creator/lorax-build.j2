@@ -29,6 +29,11 @@ mkdir -p $REPO_DIR
 cp -a $INPUT_RPMS/* $REPO_DIR || echo "RPM files can't be copied!"  # We could just do the build with official repositories only
 createrepo_c $REPO_DIR
 
+# TODO: Remove this when Lorax is changed
+pushd /usr/share/lorax
+patch -p2 -i /adjust-templates-for-Xorg-to-Wayland.patch
+popd
+
 # build boot.iso with our rpms
 . /etc/os-release
 # The download.fedoraproject.org automatic redirector often selects download-ib01.f.o. for GitHub's cloud, which is too unreliable; use a mirror

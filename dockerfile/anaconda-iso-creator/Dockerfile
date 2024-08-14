@@ -42,7 +42,7 @@ RUN set -ex; \
 
 COPY ["lorax-build", "/"]
 COPY ["lorax-build-webui", "/"]
-COPY ["adjust-templates-for-webui.patch", "/"]
+COPY ["adjust-templates-for-webui.patch", "adjust-templates-for-Xorg-to-Wayland.patch", "/"]
 
 RUN mkdir /lorax /anaconda-rpms /images
 
