@@ -24,12 +24,15 @@ from pyanaconda.core.dbus import DBus
 from pyanaconda.core.product import get_product_is_final_release
 from pyanaconda.core.signal import Signal
 from pyanaconda.modules.common.structures.vnc import VncData
-from pyanaconda.modules.runtime.user_interface.ui_interface import UIInterface
+from pyanaconda.modules.common.structures.rdp import RdpData
 from pyanaconda.modules.common.base import KickstartBaseModule
 from pyanaconda.modules.common.constants.objects import USER_INTERFACE
 from pyanaconda.modules.common.structures.policy import PasswordPolicy
+from pyanaconda.modules.runtime.user_interface.ui_interface import UIInterface
+
 
 log = get_module_logger(__name__)
+
 
 __all__ = ["UIModule"]
 
@@ -50,6 +53,9 @@ class UIModule(KickstartBaseModule):
 
         self.vnc_changed = Signal()
         self._vnc = VncData()
+
+        self.rdp_changed = Signal()
+        self._rdp = RdpData()
 
     def publish(self):
         """Publish the module."""
@@ -130,6 +136,24 @@ class UIModule(KickstartBaseModule):
         self._vnc = vnc
         self.vnc_changed.emit()
         log.debug("VNC enabled set to: %s", vnc)
+
+    @property
+    def rdp(self):
+        """The RdpData.
+
+        :return: an instance of rdpData
+        """
+        return self._rdp
+
+    def set_rdp(self, rdp):
+        """Set the RdpData structure.
+
+        :param rdp: RdpData structure.
+        :type rdp: object
+        """
+        self._rdp = rdp
+        self.rdp_changed.emit()
+        log.debug("rdp enabled set to: %s", rdp)
 
     @property
     def password_policies(self):

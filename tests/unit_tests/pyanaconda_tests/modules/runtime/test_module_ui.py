@@ -18,12 +18,14 @@
 import unittest
 
 from dasbus.structure import compare_data
-from dasbus.typing import get_variant, Bool, UInt16
+from dasbus.typing import get_variant, Bool, UInt16, Str, Int32, Structure
 
+from pyanaconda.core.constants import SECRET_TYPE_NONE
 from pyanaconda.modules.runtime.user_interface import UIModule
 from pyanaconda.modules.runtime.user_interface.ui_interface import UIInterface
 from pyanaconda.modules.common.constants.objects import USER_INTERFACE
 from pyanaconda.modules.common.structures.policy import PasswordPolicy
+from pyanaconda.modules.common.structures.rdp import RdpData
 from tests.unit_tests.pyanaconda_tests import check_dbus_property
 
 
@@ -68,3 +70,28 @@ class UIInterfaceTestCase(unittest.TestCase):
             "PasswordPolicies",
             {"luks": policy}
         )
+
+    def test_default_rdp(self):
+        """Test default empty Rdp configuration."""
+        rdp = RdpData.from_structure(self.interface.Rdp)
+
+        assert rdp.enabled is False
+        assert rdp.host == ""
+        assert rdp.port == -1
+        assert rdp.username == ""
+        # Value is hidden in SecretData
+        assert rdp.password.value == ""
+
+    def test_rdp_property(self):
+        """Test the rdp property."""
+        rdp = {
+            "enabled": get_variant(Bool, True),
+            "host": get_variant(Str, "example"),
+            "port": get_variant(Int32, -1),
+            "username": get_variant(Str, ""),
+            "password": get_variant(Structure,
+                                          {"type": get_variant(Str, SECRET_TYPE_NONE),
+                                           "value": get_variant(Str,"pass")})
+        }
+
+        self._check_dbus_property("Rdp", rdp)

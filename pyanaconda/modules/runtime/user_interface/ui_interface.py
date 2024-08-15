@@ -25,10 +25,11 @@ from pyanaconda.core.constants import DisplayModes
 from pyanaconda.modules.common.base import KickstartModuleInterfaceTemplate
 from pyanaconda.modules.common.constants.objects import USER_INTERFACE
 from pyanaconda.modules.common.structures.policy import PasswordPolicy
+from pyanaconda.modules.common.structures.vnc import VncData
+from pyanaconda.modules.common.structures.rdp import RdpData
+
 
 __all__ = ["UIInterface"]
-
-from pyanaconda.modules.common.structures.vnc import VncData
 
 
 @dbus_interface(USER_INTERFACE.interface_name)
@@ -43,6 +44,7 @@ class UIInterface(KickstartModuleInterfaceTemplate):
         self.watch_property("DisplayModeNonInteractive",
                             self.implementation.display_mode_nonInteractive_changed)
         self.watch_property("Vnc", self.implementation.vnc_changed)
+        self.watch_property("Rdp", self.implementation.rdp_changed)
 
     @property
     def PasswordPolicies(self) -> Dict[Str, Structure]:
@@ -117,6 +119,24 @@ class UIInterface(KickstartModuleInterfaceTemplate):
         """
         self.implementation.set_vnc(
             VncData.from_structure(vnc)
+        )
+
+    @property
+    def Rdp(self) -> Structure:
+        """Specification of the RDP configuration."""
+        return RdpData.to_structure(self.implementation.rdp)
+
+    @Rdp.setter
+    @emits_properties_changed
+    def Rdp(self, rdp: Structure):
+        """Specify of the RDP configuration.
+
+        The DBus structure is defined by RdpData.
+
+        :param rdp: a dictionary with specification.
+        """
+        self.implementation.set_rdp(
+            RdpData.from_structure(rdp)
         )
 
     @property
