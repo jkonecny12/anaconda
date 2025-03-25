@@ -45,8 +45,10 @@ RUN set -ex; \
 # to be able to read ip of the container and pass that to VM
   iproute \
   kiwi \
+  python3-kiwi-boxed-plugin \
   kiwi-systemdeps \
   distribution-gpg-keys; \
+  dnf --enablerepo=updates-testing upgrade -y --advisory FEDORA-2021-944b551751; \
   dnf clean all
 
 RUN mkdir /build /anaconda-rpms /images
