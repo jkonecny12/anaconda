@@ -174,8 +174,6 @@ class FlatpakManager:
     def calculate_size(self):
         """Calculate the download and install size of the Flatpak content.
 
-        :param progress: used to report progress of the operation
-
         The result is available from the download_size and install_size properties.
         """
         if self._skip_installation:
