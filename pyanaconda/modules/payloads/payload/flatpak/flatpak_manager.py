@@ -207,7 +207,10 @@ class FlatpakManager:
 
         :param progress: used to report progress of the operation
 
-        This is only needed if Flatpak can't install the content directly.
+        This is only needed if Flatpak can't install the content directly. This happens when
+        the Flatpaks are available remotely on HTTP/FTP etc. repository.
+        This method is not necessary when installing from Flatpak repository or offline local
+        installation.
         """
         if self._skip_installation:
             log.debug("Flatpak download is going to be skipped.")
