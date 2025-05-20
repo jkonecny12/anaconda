@@ -70,6 +70,7 @@ class FlatpakManager:
 
         self._source = None
         self._skip_installation = True
+        # location of the local installation source ready for installation in flatpak format
         self._collection_location = None
         self._progress: Optional[ProgressReporter] = None
         self._transaction = None
