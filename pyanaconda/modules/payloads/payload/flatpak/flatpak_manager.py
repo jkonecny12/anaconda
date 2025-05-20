@@ -101,14 +101,20 @@ class FlatpakManager:
         If unset, pre-installation will install directly from the configured
         Flatpak remote (see flatpak_remote in the anaconda configuration).
 
-        :param str url: URL pointing to the Flatpak content
+        :param sources: List of sources from the DNF payload (only supported now)
         """
+        # TODO: We need to add Flatpak own source type so we can expect
+        # something specific here not just any source
 
         if not sources:
             return
 
+        # Take the first source as that is the base source from the DNF repository list.
+        # We expect that the URL of the base DNF repository is source of the Flatpak repository.
         source = sources[0]
 
+        # Decide how we want to process the main payload source to use the URL of the source
+        # for that we need to know that this is Repository source so we know what we can do
         if isinstance(source, RepositorySourceMixin):
             if self._source and isinstance(self._source, FlatpakStaticSource) \
                     and self._source.repository_config == source.repository:
