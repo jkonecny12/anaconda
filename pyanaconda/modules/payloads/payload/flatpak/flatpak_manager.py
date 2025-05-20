@@ -146,8 +146,7 @@ class FlatpakManager:
     def set_download_location(self, path: str):
         """Sets a location that can be used for temporary download of Flatpak content.
 
-        :param path: parent directory to store downloaded Flatpak content
-           (the download should be to a subdirectory of this path)
+        :param path: Path to directory we will use to download flatpaks into
         """
         log.debug("Flatpak download location set to: %s", path)
         self._download_location = path
