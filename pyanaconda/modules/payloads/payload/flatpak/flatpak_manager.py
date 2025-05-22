@@ -261,6 +261,9 @@ class FlatpakManager:
             if self._collection_location:
                 self._transaction.add_sideload_image_collection(self._collection_location, None)
 
+            # Add to the Flatpak transaction all Flatpaks and runtimes marked for
+            # installation by preinstall.d Flatpak feature
+            # See https://github.com/flatpak/flatpak/issues/5579
             self._transaction.add_sync_preinstalled()
 
             self._progress = progress
