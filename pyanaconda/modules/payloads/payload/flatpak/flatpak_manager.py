@@ -317,6 +317,8 @@ class FlatpakManager:
     def _operation_started_callback(self, transaction, operation, progress):
         """Start of the new operation.
 
+        This callback is called when a new operation is started in the Transaction set.
+
         :param transaction: the main transaction object
         :type transaction: Flatpak.Transaction instance
         :param operation: object describing the operation
@@ -330,6 +332,8 @@ class FlatpakManager:
     def _operation_stopped_callback(self, transaction, operation, _commit, result):
         """Existing operation ended.
 
+        This callback is called when an operation in the Transaction set was stopped.
+
         :param transaction: the main transaction object
         :type transaction: Flatpak.Transaction instance
         :param operation: object describing the operation
@@ -342,6 +346,8 @@ class FlatpakManager:
 
     def _operation_error_callback(self, transaction, operation, error, details):
         """Process error raised by the flatpak operation.
+
+        This callback is called when an operation in the Transaction set has failed.
 
         :param transaction: the main transaction object
         :type transaction: Flatpak.Transaction instance
