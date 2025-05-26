@@ -37,6 +37,7 @@ from pyanaconda.modules.payloads.base.utils import get_downloader_for_repo_confi
 from pyanaconda.modules.payloads.payload.flatpak.constants import (
     FLATPAK_IMAGE_LAYOUT_VERSION,
     FLATPAK_MEDIA_TYPE,
+    FLATPAK_REGISTRY_URL_PATTERN,
     FLATPAK_SCHEMA_V2,
 )
 from pyanaconda.modules.payloads.payload.flatpak.utils import (
@@ -390,8 +391,7 @@ class FlatpakRegistrySource(FlatpakSource):
         else:
             tag = "latest"
 
-        url_pattern = "{}/index/static?label:org.flatpak.ref:exists=1&architecture={}&tag={}"
-        full_url = url_pattern.format(base_url, arch, tag)
+        full_url = FLATPAK_REGISTRY_URL_PATTERN.format(base_url, arch, tag)
         with requests_session() as session:
             response = session.get(full_url)
             response.raise_for_status()

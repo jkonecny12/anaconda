@@ -21,3 +21,5 @@
 FLATPAK_SCHEMA_V2 = 2
 FLATPAK_IMAGE_LAYOUT_VERSION = "1.0.0"
 FLATPAK_MEDIA_TYPE = "application/vnd.oci.image.manifest.v1+json"
+
+FLATPAK_REGISTRY_URL_PATTERN = "{}/index/static?label:org.flatpak.ref:exists=1&architecture={}&tag={}"
