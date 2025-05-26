@@ -365,6 +365,7 @@ class FlatpakRegistrySource(FlatpakSource):
 
         for image in self._images:
             if image.ref not in expanded:
+                # Exclude all the refs which are not marked for installation
                 log.debug("Image %s is not in expanded refs: %s", image.ref, expanded)
                 continue
 
