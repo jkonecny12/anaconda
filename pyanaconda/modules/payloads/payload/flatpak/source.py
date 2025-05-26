@@ -229,6 +229,7 @@ class FlatpakStaticSource(FlatpakSource):
         with self._downloader() as downloader:
             for image in self._images:
                 if image.ref in expanded_refs:
+                    # Expanded refs have all the refs we need for the installation (including runtimes)
                     log.debug("Downloading %s, %s bytes", image.ref, image.download_size)
                     if progress:
                         progress.report_progress(_("Downloading {}").format(image.ref))
