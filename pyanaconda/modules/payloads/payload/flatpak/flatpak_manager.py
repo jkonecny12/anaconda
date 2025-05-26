@@ -295,8 +295,10 @@ class FlatpakManager:
     # repositories working - it basically entirely disables all
     # remote handling. So we have to resort to an uglier
     # workaround for now.
+    # https://issues.redhat.com/browse/RHEL-85624
 
     def _disable_network_download(self, installation):
+        # Temporary workaround for https://issues.redhat.com/browse/RHEL-85624
         saved_urls = {}
         for remote in installation.list_remotes():
             old_url = remote.get_url()
@@ -308,6 +310,7 @@ class FlatpakManager:
         return saved_urls
 
     def _reenable_network_download(self, installation, saved_urls):
+        # Temporary workaround for https://issues.redhat.com/browse/RHEL-85624
         for remote in installation.list_remotes():
             old_url = saved_urls.get(remote.get_name())
             if old_url:
